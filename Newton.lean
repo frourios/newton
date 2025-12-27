@@ -1,6 +1,9 @@
+import Newton.Analysis.Convolution.ApproximateIdentity
 import Newton.Analysis.Convolution.Basic
 import Newton.Analysis.Convolution.Bounds
 import Newton.Analysis.Convolution.Minkowski
+import Newton.Analysis.Distribution.SchwartzDensity
+import Newton.MeasureTheory.Function.LpSpace.ContinuousDense
 import Newton.MeasureTheory.Function.LpSpace.Duality
 import Newton.MeasureTheory.Integral.Holder
 import Newton.MeasureTheory.Integral.Tonelli

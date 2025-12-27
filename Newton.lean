@@ -1,4 +1,5 @@
 import Newton.Analysis.Convolution.Basic
+import Newton.Analysis.Convolution.Bounds
 import Newton.Analysis.Convolution.Minkowski
 import Newton.MeasureTheory.Function.LpSpace.Duality
 import Newton.MeasureTheory.Integral.Holder

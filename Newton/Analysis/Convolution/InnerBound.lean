@@ -12,6 +12,8 @@ r ≠ ∞.
 open MeasureTheory Complex NNReal
 open scoped ENNReal Topology ContDiff ComplexConjugate
 
+namespace Newton
+
 variable {n : ℕ}
 
 /-! ### 1.2 Inner integral evaluation -/
@@ -1647,3 +1649,5 @@ lemma young_convolution_r_ne_top
           rw [h_final_bound]
       _ = eLpNorm f p volume * eLpNorm g q volume := by
           rw [← ENNReal.rpow_mul, mul_inv_cancel₀ (ne_of_gt hr_pos_real), ENNReal.rpow_one]
+
+end Newton

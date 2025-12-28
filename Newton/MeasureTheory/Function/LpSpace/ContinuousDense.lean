@@ -10,6 +10,8 @@ import Mathlib.Analysis.Calculus.BumpFunction.SmoothApprox
 open MeasureTheory NNReal SchwartzMap
 open scoped ENNReal ContDiff Topology
 
+namespace Newton
+
 /-!
 # Density of Schwartz functions in Lp spaces
 
@@ -1253,3 +1255,5 @@ lemma tail_bound_mono
   have h_le_real :
       ∫ x, F x ∂(volume.restrict S₂) ≤ ∫ x, F x ∂(volume.restrict S₁) := h_le
   exact lt_of_le_of_lt h_le_real h_bound
+
+end Newton

@@ -8,6 +8,8 @@ import Newton.Analysis.Convolution.Minkowski
 open MeasureTheory Complex NNReal
 open scoped ENNReal ContDiff Pointwise
 
+namespace Newton
+
 variable {n : ℕ}
 
 lemma convolution_sub
@@ -587,12 +589,10 @@ theorem convolution_diff_bound_L2
   -- Step 1: establish a.e. integrability of the two convolution integrands
   have hconv₁ : ∀ᵐ x ∂volume, Integrable (fun y => f₁ (x - y) * ψ y) volume := by
     simpa using
-      (MeasureTheory.convolution_fiber_integrable_L2_L1
-        (μ := volume) (f := f₁) (g := ψ) hf₁ hψ)
+      (convolution_fiber_integrable_L2_L1 (μ := volume) (f := f₁) (g := ψ) hf₁ hψ)
   have hconv₂ : ∀ᵐ x ∂volume, Integrable (fun y => f₂ (x - y) * ψ y) volume := by
     simpa using
-      (MeasureTheory.convolution_fiber_integrable_L2_L1
-        (μ := volume) (f := f₂) (g := ψ) hf₂ hψ)
+      (convolution_fiber_integrable_L2_L1 (μ := volume) (f := f₂) (g := ψ) hf₂ hψ)
 
   -- Step 2: rewrite the difference of convolutions as the convolution of the difference
   have h_sub_ae := convolution_sub (f₁ := f₁) (f₂ := f₂) (g := ψ) hconv₁ hconv₂
@@ -622,3 +622,5 @@ theorem convolution_diff_bound_L2
   simpa [h_eq_eLp] using h_bound
 
 end ConvolutionDifferenceBounds
+
+end Newton

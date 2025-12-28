@@ -21,6 +21,8 @@ functions and 1 ≤ p < ∞:
 open MeasureTheory ENNReal NNReal
 open scoped ENNReal
 
+namespace Newton
+
 variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
 variable {μ : Measure α} {ν : Measure β}
 variable {E : Type*} [NormedAddCommGroup E]
@@ -368,3 +370,5 @@ lemma convolution_kernel_integrable
   exact ⟨h_meas, h_kernel_fin⟩
 
 end ConvolutionPreparatory
+
+end Newton

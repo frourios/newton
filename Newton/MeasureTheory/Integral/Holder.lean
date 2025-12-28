@@ -10,6 +10,8 @@ import Mathlib.MeasureTheory.Function.L1Space.Integrable
 open MeasureTheory ENNReal NNReal
 open scoped ENNReal BigOperators
 
+namespace Newton
+
 variable {α : Type*} [MeasurableSpace α]
 variable {μ : Measure α}
 variable {E F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F]
@@ -982,3 +984,5 @@ lemma holder_kernel_pairing_bound
   simpa [g] using h_abs_integral_final
 
 end MinkowskiAux
+
+end Newton

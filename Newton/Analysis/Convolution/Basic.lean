@@ -8,6 +8,8 @@ import Newton.Analysis.Convolution.InnerBound
 open MeasureTheory Complex NNReal
 open scoped ENNReal Topology ContDiff ComplexConjugate
 
+namespace Newton
+
 variable {n : ℕ}
 
 theorem young_convolution_inequality
@@ -275,3 +277,5 @@ theorem young_convolution_inequality
       · -- Case p ≠ ⊤, q ≠ ⊤, r ≠ ⊤
         have hr : 1 ≤ r := young_exponent_r_ge_one hp hq hpqr
         exact young_convolution_r_ne_top f g p q r hp hq hr hp_top hq_top hr_top hpqr hf hg
+
+end Newton

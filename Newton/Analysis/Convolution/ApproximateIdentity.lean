@@ -17,6 +17,8 @@ density theorem.
 open MeasureTheory Complex NNReal SchwartzMap
 open scoped ENNReal ContDiff Topology Pointwise
 
+namespace Newton
+
 variable {n : ℕ}
 
 /--
@@ -1340,3 +1342,5 @@ theorem mollifier_converges_Lp
   have hε_sum : ε / 4 + ε / 2 + ε / 4 = ε := by ring
   simpa [conv_f, hconvf, hε_sum]
     using h_target_le
+
+end Newton

@@ -13,6 +13,8 @@ import Newton.Analysis.Convolution.Bounds
 open MeasureTheory SchwartzMap Complex NNReal
 open scoped ENNReal ContDiff Topology Convolution ComplexConjugate
 
+namespace Newton
+
 variable {n : ℕ}
 
 lemma exists_smooth_cutoff
@@ -2132,3 +2134,5 @@ theorem smooth_compactSupport_dense_L1_L2_real
     lt_trans hfg_L1_half' hε_half_lt
 
   refine ⟨g, hg_smooth, hg_support, hfg_L1, hfg_L2⟩
+
+end Newton

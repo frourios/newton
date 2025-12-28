@@ -8,10 +8,10 @@ import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 open MeasureTheory
 open scoped ENNReal
 
+namespace Newton
+
 variable {G : Type*} [MeasurableSpace G]
 variable {μ : Measure G}
-
-namespace MeasureTheory
 
 section TonelliForConvolution
 
@@ -878,8 +878,6 @@ theorem convolution_fiber_integrable_L2_L1
   refine ⟨h_aestrong_prod, ?_⟩
   simpa [HasFiniteIntegral, h_norm_eq] using h_int_prod
 
-end MeasureTheory
-
 /--
 Tonelli's theorem for nonnegative real-valued functions on a product space:
 the lintegral of `ENNReal.ofReal ∘ H` on `μ.prod μ` equals `ENNReal.ofReal` of the
@@ -984,3 +982,5 @@ lemma aemeasurable_triple_product_add_ennreal
   exact (hg_comp.mul hφ_comp).mul hf_comp
 
 end TripleProductFiniteness
+
+end Newton

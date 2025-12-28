@@ -18,6 +18,8 @@ progress.
 open scoped ENNReal
 open MeasureTheory Real Topology
 
+namespace Newton
+
 variable {α : Type*} [MeasurableSpace α] {μ : Measure α}
 variable {β : Type*} [MeasurableSpace β] {ν : Measure β}
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -1314,3 +1316,5 @@ lemma memLp_norm_integral
         hp_one_lt hp_ne_top hF_meas hF_prod hF_memLp hF_norm
     have hg_mem : MemLp g p μ := ⟨hg_meas, by simpa [g] using h_lt_top⟩
     simpa [g] using hg_mem
+
+end Newton

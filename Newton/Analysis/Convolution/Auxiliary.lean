@@ -21,6 +21,8 @@ including:
 open MeasureTheory Complex NNReal
 open scoped ENNReal Topology ContDiff ComplexConjugate
 
+namespace Newton
+
 variable {n : ℕ}
 
 lemma lintegral_mul_mul_le_three_holder
@@ -541,3 +543,5 @@ lemma convolution_integrand_decomposition
   simp only [ha_def, hb_def] at hrhs
   rw [h_p_div_toReal, h_q_div_toReal]
   exact hrhs
+
+end Newton

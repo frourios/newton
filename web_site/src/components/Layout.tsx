@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ThemeToggle } from './ThemeToggle'
 import './Layout.css'
 
 interface LayoutProps {
@@ -22,6 +23,7 @@ export function Layout({
       <a id="skip-to-content" href="#content">Skip to the content.</a>
 
       <header className="page-header" role="banner">
+        <ThemeToggle />
         <h1 className="project-name">{title}</h1>
         <h2 className="project-tagline">{description}</h2>
         <a href="/docs" className="btn">Documentation</a>

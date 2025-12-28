@@ -9,4 +9,9 @@
   font-size: 4em;
   line-height: 1;
   letter-spacing: -1px;
+  color: var(--color-text-primary);
+}
+
+.container p {
+  color: var(--color-text-secondary);
 }

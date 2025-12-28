@@ -17,6 +17,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check for forbidden keywords (axiom/sorry/admit/trivial)
+        run: |
+          if grep -r -n -E '\b(axiom|sorry|admit|trivial)\b' Newton/**/*.lean; then
+            echo "Error: Found forbidden keywords (axiom, sorry, admit, or trivial) in Lean files"
+            echo "All proofs must be complete without shortcuts"
+            exit 1
+          fi
+          echo "✓ No forbidden keywords found"
+
       - uses: leanprover/lean-action@v1
       # - uses: leanprover-community/docgen-action@v1
 

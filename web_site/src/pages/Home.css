@@ -1,0 +1,201 @@
+/* Hero Section */
+.hero-section {
+  text-align: center;
+  padding: 2rem 0 3rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 3rem;
+}
+
+.hero-section h2 {
+  font-size: 2rem;
+  color: var(--color-text-primary);
+  margin-bottom: 1rem;
+}
+
+.hero-description {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  max-width: 700px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.7;
+}
+
+.hero-badges {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-verified {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+}
+
+.badge-lean {
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  color: white;
+}
+
+.badge-mathlib {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+}
+
+/* Features Section */
+.features-section {
+  margin-bottom: 3rem;
+}
+
+.features-section h2 {
+  text-align: center;
+  font-size: 1.75rem;
+  color: var(--color-text-primary);
+  margin-bottom: 2rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.feature-card {
+  padding: 1.5rem;
+  background: var(--color-feature-bg);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.feature-card p {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Theorems Section */
+.theorems-section {
+  margin-bottom: 3rem;
+}
+
+.theorems-section h2 {
+  font-size: 1.75rem;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.section-description {
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+/* Quick Start Section */
+.quickstart-section {
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: var(--color-quickstart-bg);
+  border-radius: 12px;
+  border: 1px solid var(--color-quickstart-border);
+}
+
+.quickstart-section h2 {
+  font-size: 1.5rem;
+  color: var(--color-quickstart-text);
+  margin: 0 0 0.5rem 0;
+}
+
+.quickstart-section > p {
+  color: var(--color-quickstart-text);
+  margin-bottom: 1rem;
+}
+
+.code-block {
+  background: var(--color-code-block-bg);
+  border-radius: 8px;
+  padding: 1.25rem;
+  overflow-x: auto;
+}
+
+.code-block code {
+  font-family: 'Fira Code', 'SF Mono', Monaco, 'Andale Mono', monospace;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+  background: transparent;
+  line-height: 1.6;
+}
+
+.code-comment {
+  color: #6b7280;
+}
+
+.code-key {
+  color: #fbbf24;
+}
+
+.code-attr {
+  color: #60a5fa;
+}
+
+.code-string {
+  color: #34d399;
+}
+
+/* Responsive */
+@media screen and (max-width: 64em) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 42em) {
+  .hero-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .features-section h2,
+  .theorems-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .quickstart-section {
+    padding: 1.5rem;
+  }
+
+  .code-block {
+    padding: 1rem;
+  }
+
+  .code-block code {
+    font-size: 0.8rem;
+  }
+}

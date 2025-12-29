@@ -1,10 +1,6 @@
 import Newton.Analysis.Convolution.Auxiliary
 import Newton.Analysis.Convolution.InnerBound
 
-/-!
-# Main Theorem: Young's Convolution Inequality
--/
-
 open MeasureTheory Complex NNReal
 open scoped ENNReal Topology ContDiff ComplexConjugate
 
@@ -76,11 +72,6 @@ theorem young_convolution_inequality
         ext y; simp [sub_eq_add_neg]
       rw [h_eq]
       exact h2.comp h1
-    -- Estimate using Hölder inequality
-    -- Handle endpoint cases where p = ⊤ or q = ⊤
-    -- Case p = ⊤, q = 1: ‖f * g‖_∞ ≤ ‖f‖_∞ ‖g‖_1
-    -- Case p = 1, q = ⊤: ‖f * g‖_∞ ≤ ‖f‖_1 ‖g‖_∞
-    -- Otherwise: use Real.HolderConjugate
     by_cases hp_top : p = ⊤
     · -- Case p = ⊤: q = 1 (from 1/⊤ + 1/q = 1, we get 1/q = 1)
       have hq_eq : q = 1 := by
@@ -102,7 +93,7 @@ theorem young_convolution_inequality
               have h_ae := enorm_ae_le_eLpNormEssSup f volume
               have h_mp_ae := (h_mp x).quasiMeasurePreserving.ae h_ae
               filter_upwards [h_mp_ae] with y hy
-              exact mul_le_mul_right' hy _
+              exact mul_le_mul_left hy _
           _ = eLpNormEssSup f volume * ∫⁻ y, ‖g y‖ₑ ∂volume := by
               rw [lintegral_const_mul'' _ hg.aestronglyMeasurable.enorm]
           _ = eLpNorm f ⊤ volume * eLpNorm g 1 volume := by
@@ -144,7 +135,7 @@ theorem young_convolution_inequality
                 apply lintegral_mono_ae
                 have h_ae := enorm_ae_le_eLpNormEssSup g volume
                 filter_upwards [h_ae] with y hy
-                exact mul_le_mul_left' hy _
+                exact mul_le_mul_right hy _
             _ = (∫⁻ y, ‖f (x - y)‖ₑ ∂volume) * eLpNormEssSup g volume := by
                 exact lintegral_mul_const'' _
                   (hf.aestronglyMeasurable.enorm.comp_quasiMeasurePreserving

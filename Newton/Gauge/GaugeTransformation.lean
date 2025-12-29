@@ -94,13 +94,13 @@ theorem inv_matrix (g : SUNGroup N) : g⁻¹.matrix = conjTranspose g.matrix := 
 @[simp]
 theorem mul_one (g : SUNGroup N) : g * 1 = g := by
   apply ext
-  simp [Matrix.mul_one]
+  simp
 
 /-- Left identity law -/
 @[simp]
 theorem one_mul (g : SUNGroup N) : 1 * g = g := by
   apply ext
-  simp [Matrix.one_mul]
+  simp
 
 /-- Right inverse law -/
 @[simp]
@@ -141,7 +141,7 @@ noncomputable def adjointAction (g : SUNGroup N) (A : SuNAlgebra N) : SuNAlgebra
     -- (gAg†)† = (g†)† A† g† = g (-A) g† = -gAg†
     simp only [conjTranspose_mul, conjTranspose_conjTranspose]
     rw [A.anti_hermitian]
-    simp only [Matrix.mul_neg, Matrix.neg_mul, neg_neg]
+    simp only [Matrix.mul_neg, Matrix.neg_mul]
     rw [Matrix.mul_assoc]
 
 namespace adjointAction

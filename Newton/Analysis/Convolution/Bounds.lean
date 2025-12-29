@@ -33,8 +33,6 @@ lemma convolution_sub
     simpa using integral_sub hint₁ hint₂
   exact h₁.trans h₂
 
-section MollifierProperties
-
 /--
 Transport `AEMeasurable` across a positive scalar multiple of a measure.
 If `f` is a.e.-measurable w.r.t. `μ`, then it is also a.e.-measurable w.r.t. `c • μ`.
@@ -46,9 +44,6 @@ lemma aemeasurable_smul_measure_of_aemeasurable
     (hf : AEMeasurable f μ) : AEMeasurable f (c • μ) := by
   rcases hf with ⟨g, hg_meas, hfg⟩
   refine ⟨g, hg_meas, ?_⟩
-  -- Transfer the a.e. equality along the scalar multiple of the measure.
-  -- If μ {x | f x ≠ g x} = 0 then (c • μ) {x | f x ≠ g x} = 0.
-  -- Extract the null set statement from the a.e. equality
   have h_zero : μ {x | f x ≠ g x} = 0 := (ae_iff).1 hfg
   -- Scale the measure: null sets remain null for `c • μ`
   have h_zero' : (c • μ) {x | f x ≠ g x} = 0 := by
@@ -59,8 +54,6 @@ lemma aemeasurable_smul_measure_of_aemeasurable
   exact (ae_iff).2 h_zero'
 
 /--
-**Scaled mollifier L¹ norm bound.**
-
 For the scaled mollifier ψ_η with ∫ ψ = 1, we have ‖ψ_η‖₁ = 1.
 -/
 theorem scaled_mollifier_L1_norm_one
@@ -76,11 +69,9 @@ theorem scaled_mollifier_L1_norm_one
   set ψη : (Fin n → ℝ) → ℝ :=
     fun x => η^(-(n : ℝ)) * ψ (fun i => x i / η) with hψη_def
   set g : (Fin n → ℝ) → (Fin n → ℝ) := fun x => (1 / η : ℝ) • x with hg_def
-
   -- Basic measurability for the scaling map
   have hg_meas : Measurable g := by
     simpa [hg_def] using (continuous_const_smul (1 / η : ℝ)).measurable
-
   -- Pointwise positivity of ψη due to ψ ≥ 0 and η > 0.
   have hψη_nonneg : ∀ x, 0 ≤ ψη x := by
     intro x
@@ -95,7 +86,6 @@ theorem scaled_mollifier_L1_norm_one
     -- Align ψ (g x) with ψ (fun i => x i / η) using hx_arg
     simpa [hψη_def, hg_def, one_div, div_eq_mul_inv, hx_arg, mul_comm, mul_left_comm, mul_assoc]
       using mul_nonneg hηpos hψ_nonneg_at
-
   -- Rewrite the L¹ seminorm as a nonnegative lintegral and factor out the constant η^{-n}.
   have h_step1 :
       eLpNorm ψη 1 volume
@@ -120,15 +110,14 @@ theorem scaled_mollifier_L1_norm_one
         _   = ENNReal.ofReal (ψη x) := by
               simp [Real.norm_eq_abs, abs_of_nonneg (hψη_nonneg x)]
         _   = ENNReal.ofReal (η^(-(n : ℝ)) * ψ (g x)) := by
-              simp [hψη_def, hg_def, one_div, div_eq_mul_inv, hx_arg,
-                mul_comm, mul_left_comm, mul_assoc]
+              simp [hψη_def, hg_def, div_eq_mul_inv, hx_arg, mul_comm]
         _   = ENNReal.ofReal (η^(-(n : ℝ))) * ENNReal.ofReal (ψ (g x)) := by
               -- Use `ENNReal.ofReal_mul` (one nonneg proof argument) and specify `p`, `q`.
               simpa [mul_comm, mul_left_comm, mul_assoc]
                 using (ENNReal.ofReal_mul
                   (p := η^(-(n : ℝ))) (q := ψ (g x)) hη_nonneg)
     -- Pull the constant out of the lintegral using the `c ≠ ∞` variant.
-    have h_c_ne_top : ENNReal.ofReal (η^(-(n : ℝ))) ≠ ∞ := by simp
+    have h_c_ne_top : ENNReal.ofReal (η^(-(n : ℝ))) ≠ ⊤ := by simp
     calc
       eLpNorm ψη 1 volume
           = ∫⁻ x, ‖ψη x‖ₑ ∂volume := by
@@ -142,7 +131,6 @@ theorem scaled_mollifier_L1_norm_one
                       (ENNReal.ofReal (η^(-(n : ℝ))))
                       (fun x : (Fin n → ℝ) => ENNReal.ofReal (ψ (g x)))
                       h_c_ne_top)
-
   -- Compute the pushforward of Lebesgue measure under the linear scaling map x ↦ (1/η)·x.
   have h_map_scale :
       Measure.map g volume
@@ -201,9 +189,8 @@ theorem scaled_mollifier_L1_norm_one
           = ENNReal.ofReal (abs ((LinearMap.det
               ((1 / η : ℝ) • (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ))) )⁻¹))
               * ∫⁻ y, ENNReal.ofReal (ψ y) ∂volume := by
-      simp [h_map_scale, lintegral_smul_measure, mul_comm, mul_left_comm, mul_assoc]
+      simp [h_map_scale, lintegral_smul_measure]
     simpa [h_map_eq] using h_pull_const
-
   -- Convert the remaining lintegral to a real integral using nonnegativity of ψ.
   have hψ_nonneg_ae : 0 ≤ᵐ[volume] fun y => ψ y :=
     Filter.Eventually.of_forall hψ_nonneg
@@ -213,7 +200,6 @@ theorem scaled_mollifier_L1_norm_one
     -- Use the standard bridge between lintegral and integral for nonnegative integrable ψ.
     simpa using
       (MeasureTheory.ofReal_integral_eq_lintegral_ofReal hψ_int hψ_nonneg_ae).symm
-
   have h_det_simp :
       ENNReal.ofReal (abs ((LinearMap.det
           ((1 / η : ℝ) • (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ))) )⁻¹))
@@ -221,10 +207,8 @@ theorem scaled_mollifier_L1_norm_one
     -- Evaluate the determinant and simplify using η > 0.
     have hdet :
         LinearMap.det ((1 / η : ℝ) • (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ)))
-          = (1 / η : ℝ) ^ (Module.finrank ℝ (Fin n → ℝ)) := by
-      simp
-    have hfinrank : (Module.finrank ℝ (Fin n → ℝ)) = n := by
-      simp
+          = (1 / η : ℝ) ^ (Module.finrank ℝ (Fin n → ℝ)) := by simp
+    have hfinrank : (Module.finrank ℝ (Fin n → ℝ)) = n := by simp
     -- Since η > 0, ((1/η)^n)⁻¹ = η^n and is nonnegative, so its absolute value equals itself.
     have h_pow_inv : ((1 / η : ℝ) ^ n)⁻¹ = η ^ n := by
       -- Use (a^n)⁻¹ = (a⁻¹)^n with a = 1/η and (1/η)⁻¹ = η.
@@ -237,21 +221,17 @@ theorem scaled_mollifier_L1_norm_one
     have h_abs_eq : abs (((1 / η : ℝ) ^ n)⁻¹) = ((1 / η : ℝ) ^ n)⁻¹ :=
       abs_of_nonneg h_nonneg
     -- Translate nat-power to real-power.
-    have h_nat_to_real : (η ^ n : ℝ) = η ^ (n : ℝ) := by
-      simp
-    -- Conclude.
+    have h_nat_to_real : (η ^ n : ℝ) = η ^ (n : ℝ) := by simp
     calc
       ENNReal.ofReal (abs ((LinearMap.det
           ((1 / η : ℝ) • (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ))) )⁻¹))
           = ENNReal.ofReal (abs (((1 / η : ℝ) ^ (Module.finrank ℝ (Fin n → ℝ))) )⁻¹) := by
-            simp [hdet]
+            simp
       _ = ENNReal.ofReal (abs (((1 / η : ℝ) ^ n)⁻¹)) := by simp [hfinrank]
       _ = ENNReal.ofReal (((1 / η : ℝ) ^ n)⁻¹) := by simp [abs_of_pos hη]
-      _ = ENNReal.ofReal (η ^ n) := by simp [h_pow_inv]
+      _ = ENNReal.ofReal (η ^ n) := by simp
       _ = ENNReal.ofReal (((η : ℝ) ^ (n : ℝ))) := by
-        -- Avoid `simp` looping by using a directed rewrite.
         exact congrArg ENNReal.ofReal h_nat_to_real
-
   -- Combine all equalities and simplify using ∫ ψ = 1 and rpow rules.
   have h_prod :
       ENNReal.ofReal (η^(-(n : ℝ)))
@@ -290,7 +270,6 @@ theorem scaled_mollifier_L1_norm_one
       _ = ENNReal.ofReal ((η : ℝ) ^ (0 : ℝ)) := by
         simpa using h_rpow
       _ = ENNReal.ofReal 1 := h_one
-
   -- Final assembly: start from `h_step1`, apply the change-of-variables `h_change`,
   -- convert the remaining lintegral using `hψ_lintegral`, and simplify with `hψ_norm`.
   calc
@@ -316,10 +295,6 @@ theorem scaled_mollifier_L1_norm_one
           -- Then convert the lintegral using `hψ_lintegral`.
           simpa [hψ_lintegral] using hconst_mul
     _ = ENNReal.ofReal 1 := by simp [hψ_norm]
-
-end MollifierProperties
-
-section ConvolutionDifferenceBounds
 
 /--
 **Bound on difference of convolutions (L¹ case).**
@@ -354,7 +329,6 @@ theorem convolution_diff_bound_L1
     intro x hx
     simpa [sub_eq_add_neg] using hx
   have h_sub_ae := convolution_sub (f₁ := f₁) (f₂ := f₂) (g := ψ) hconv₁ hconv₂
-
   -- Use ae-equality to replace the L¹ norm by the convolution of the difference.
   have h_eq_eLp :
       eLpNorm (fun x =>
@@ -363,7 +337,6 @@ theorem convolution_diff_bound_L1
     -- note the equality in `convolution_sub` has the opposite orientation
     simpa using
       eLpNorm_congr_ae (μ := volume) (p := (1 : ℝ≥0∞)) h_sub_ae.symm
-
   -- Apply Young (L¹×L¹→L¹) to the convolution of the difference with ψ.
   have hdiff_int : Integrable (fun x => f₁ x - f₂ x) volume := hf₁.sub hf₂
   have hdiff_mem : MemLp (fun x => f₁ x - f₂ x) 1 volume :=
@@ -376,8 +349,6 @@ theorem convolution_diff_bound_L1
       (p := (1 : ℝ≥0∞)) (q := (1 : ℝ≥0∞)) (r := (1 : ℝ≥0∞))
       (hp := by simp) (hq := by simp) (hpqr := by simp)
       hdiff_mem hψ_mem
-
-  -- Assemble the estimate.
   have :
       eLpNorm (fun x => ∫ y, (f₁ (x - y) - f₂ (x - y)) * ψ y) 1 volume ≤
         eLpNorm (fun x => f₁ x - f₂ x) 1 volume * eLpNorm ψ 1 volume := by
@@ -408,7 +379,6 @@ theorem mollifier_convolution_diff_L1
   set ψηR : (Fin n → ℝ) → ℝ :=
     fun y => η^(-(n : ℝ)) * ψ (fun i => y i / η) with hψηR_def
   set ψηC : (Fin n → ℝ) → ℂ := fun y => (ψηR y : ℝ) with hψηC_def
-
   -- L¹ norm of the scaled mollifier equals 1.
   -- First, obtain integrability of ψ from the normalization assumption.
   have hψ_integrable : Integrable ψ volume := by
@@ -428,10 +398,8 @@ theorem mollifier_convolution_diff_L1
   have hψηC_L1 : eLpNorm ψηC 1 volume = ENNReal.ofReal 1 := by
     have h_eq : eLpNorm ψηC 1 volume = eLpNorm ψηR 1 volume := by
       refine eLpNorm_congr_norm_ae (μ := volume) (p := (1 : ℝ≥0∞)) ?_
-      exact Filter.Eventually.of_forall (fun x => by
-        simp [ψηC, hψηC_def, Real.norm_eq_abs])
+      exact Filter.Eventually.of_forall (fun x => by simp [ψηC, Real.norm_eq_abs])
     simpa [h_eq] using hψηR_L1
-
   -- Obtain integrability of the complex scaled mollifier from its finite L¹ norm.
   have hψηC_meas : AEStronglyMeasurable ψηC volume := by
     -- Build AEMeasurable for the real scaled mollifier, then lift to complex via ofReal.
@@ -491,23 +459,19 @@ theorem mollifier_convolution_diff_L1
       simpa [ψηR, hψηR_def] using h_c_meas.mul h_comp2
     have hψηR_sm : AEStronglyMeasurable ψηR volume := hψηR_ae.aestronglyMeasurable
     exact (Complex.measurable_ofReal.comp_aemeasurable hψηR_sm.aemeasurable).aestronglyMeasurable
-
   have hψηC_int : Integrable ψηC volume := by
     -- From measurability and the finite L¹ norm we get membership in L¹, hence integrable.
     have h_lt_top : eLpNorm ψηC 1 volume < (⊤ : ℝ≥0∞) := by
       simp [hψηC_L1]
     have h_mem : MemLp ψηC 1 volume := ⟨hψηC_meas, h_lt_top⟩
     simpa using (memLp_one_iff_integrable (μ := volume)).1 h_mem
-
   -- Apply the L¹ convolution difference bound with the scaled mollifier.
   have h_bound :=
     convolution_diff_bound_L1 (f₁ := g) (f₂ := f₀)
       (ψ := ψηC) hg hf₀ hψηC_int
-
   -- Replace the multiplier by 1 using the computed L¹ norm.
   have hψηC_L1_one : eLpNorm ψηC 1 volume = (1 : ℝ≥0∞) := by
     simpa using hψηC_L1.trans (by simp)
-
   have h_form_total :
       (fun x =>
         (∫ y, g (x - y) * (↑(ψηR y) : ℂ)) - ∫ y, f₀ (x - y) * (↑(ψηR y) : ℂ))
@@ -515,10 +479,8 @@ theorem mollifier_convolution_diff_L1
             (∫ y, g (x - y) * (((↑η : ℂ) ^ n)⁻¹ * ↑(ψ (fun i => y i / η)))) -
               ∫ y, f₀ (x - y) * (((↑η : ℂ) ^ n)⁻¹ * ↑(ψ (fun i => y i / η)))) := by
     funext x
-    simp [ψηR, hψηR_def, one_div, div_eq_mul_inv,
-          Complex.ofReal_mul, Complex.ofReal_inv, Complex.ofReal_pow,
-          Real.rpow_neg (le_of_lt hη_pos), Real.rpow_natCast,
-          mul_comm, mul_left_comm, mul_assoc]
+    simp [ψηR, div_eq_mul_inv, Complex.ofReal_mul, Complex.ofReal_inv, Complex.ofReal_pow,
+          Real.rpow_neg (le_of_lt hη_pos), Real.rpow_natCast, mul_comm, mul_assoc]
   -- Apply the bound after rewriting both convolution terms inside the difference.
   simpa [ψηC, hψηC_def, hψηC_L1_one, one_mul, h_form_total]
     using h_bound
@@ -542,9 +504,7 @@ theorem convolution_diff_bound_L2
   haveI : (volume : Measure (Fin n → ℝ)).IsNegInvariant := by
     let μ : Measure (Fin n → ℝ) := volume
     refine ⟨?_⟩
-    set T :=
-      (-1 : ℝ) •
-        (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ))
+    set T := (-1 : ℝ) • (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ))
     have h_det_eq :
         LinearMap.det T =
           (-1 : ℝ) ^ Module.finrank ℝ (Fin n → ℝ) := by
@@ -563,14 +523,13 @@ theorem convolution_diff_bound_L2
         (f := T) h_det_ne_zero
     have h_abs_inv : abs ((LinearMap.det T)⁻¹) = (1 : ℝ) := by
       have := abs_inv (LinearMap.det T)
-      simpa [h_abs_det, h_det_ne_zero]
-        using this
+      simp [h_abs_det]
     have h_scalar :
         ENNReal.ofReal (abs ((LinearMap.det T)⁻¹)) = (1 : ℝ≥0∞) := by
       simp [h_abs_inv]
     have h_T_eq_neg : (T : (Fin n → ℝ) → (Fin n → ℝ)) = fun y => -y := by
       funext y
-      simp [T, LinearMap.smul_apply, Pi.smul_apply, neg_one_smul]
+      simp [T]
     have h_map :
         Measure.map (fun y : (Fin n → ℝ) => -y) volume = volume := by
       calc Measure.map (fun y : (Fin n → ℝ) => -y) volume
@@ -586,41 +545,35 @@ theorem convolution_diff_bound_L2
       rw [h_neg_eq_neg]
       exact h_map
     exact h_neg_eq
-  -- Step 1: establish a.e. integrability of the two convolution integrands
+  -- Establish a.e. integrability of the two convolution integrands
   have hconv₁ : ∀ᵐ x ∂volume, Integrable (fun y => f₁ (x - y) * ψ y) volume := by
     simpa using
       (convolution_fiber_integrable_L2_L1 (μ := volume) (f := f₁) (g := ψ) hf₁ hψ)
   have hconv₂ : ∀ᵐ x ∂volume, Integrable (fun y => f₂ (x - y) * ψ y) volume := by
     simpa using
       (convolution_fiber_integrable_L2_L1 (μ := volume) (f := f₂) (g := ψ) hf₂ hψ)
-
-  -- Step 2: rewrite the difference of convolutions as the convolution of the difference
+  -- Rewrite the difference of convolutions as the convolution of the difference
   have h_sub_ae := convolution_sub (f₁ := f₁) (f₂ := f₂) (g := ψ) hconv₁ hconv₂
   have h_eq_eLp :
       eLpNorm (fun x =>
         (∫ y, f₁ (x - y) * ψ y) - (∫ y, f₂ (x - y) * ψ y)) 2 volume
         = eLpNorm (fun x => ∫ y, (f₁ (x - y) - f₂ (x - y)) * ψ y) 2 volume := by
     simpa using eLpNorm_congr_ae (μ := volume) (p := (2 : ℝ≥0∞)) h_sub_ae.symm
-
-  -- Step 3: apply Young's inequality in the L² × L¹ → L² form
+  -- Apply Young's inequality in the L² × L¹ → L² form
   have hdiff_mem : MemLp (fun x => f₁ x - f₂ x) 2 volume := hf₁.sub hf₂
   have hYoung := by
     have hg1 : MemLp ψ 1 volume := (memLp_one_iff_integrable (μ := volume)).2 hψ
     have h :=
       young_convolution_inequality (f := f₁ - f₂) (g := ψ)
         (p := (2 : ℝ≥0∞)) (q := (1 : ℝ≥0∞)) (r := (2 : ℝ≥0∞))
-        (hp := by norm_num) (hq := by simp)
-        (hpqr := by simp [one_div, add_comm, add_left_comm, add_assoc])
+        (hp := by norm_num) (hq := by simp) (hpqr := by simp [one_div, add_comm])
         hdiff_mem hg1
     simpa using h
   have h_bound :
       eLpNorm (fun x => ∫ y, (f₁ (x - y) - f₂ (x - y)) * ψ y) 2 volume ≤
         eLpNorm (fun x => f₁ x - f₂ x) 2 volume * eLpNorm ψ 1 volume := by
     simpa using hYoung.2
-
-  -- Step 4: assemble the estimate using the a.e. equality
+  -- Assemble the estimate using the a.e. equality
   simpa [h_eq_eLp] using h_bound
-
-end ConvolutionDifferenceBounds
 
 end Newton

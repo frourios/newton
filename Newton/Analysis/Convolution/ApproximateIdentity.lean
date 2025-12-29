@@ -6,14 +6,6 @@ import Newton.Analysis.Convolution.Basic
 import Newton.MeasureTheory.Integral.Holder
 import Newton.MeasureTheory.Function.LpSpace.ContinuousDense
 
-/-!
-# Approximate Identity and Mollifier Convergence
-
-This file establishes the convergence properties of convolution with
-approximate identities (mollifiers), which are crucial for the Schwartz
-density theorem.
--/
-
 open MeasureTheory Complex NNReal SchwartzMap
 open scoped ENNReal ContDiff Topology Pointwise
 
@@ -63,7 +55,7 @@ lemma hasCompactSupport_scaledMollifier
   -- Define the scaling maps s and its inverse image description on sets.
   set s : (Fin n → ℝ) → (Fin n → ℝ) := fun x => fun i => x i / η with hs_def
   have hs_eq_smul : s = fun x : (Fin n → ℝ) => (η⁻¹ : ℝ) • x := by
-    funext x i; simp [s, hs_def, div_eq_mul_inv, mul_comm]
+    funext x i; simp [s, div_eq_mul_inv, mul_comm]
   have hs_cont : Continuous s := by
     simpa [hs_eq_smul] using (continuous_const_smul (η⁻¹ : ℝ))
   -- Support inclusion: support(scaledMollifier) ⊆ preimage of tsupport ψ under s.
@@ -77,7 +69,7 @@ lemma hasCompactSupport_scaledMollifier
       -- If ψ (s x) = 0 then the product is 0, contradiction.
       intro hzero
       have : scaledMollifier ψ η x = 0 := by
-        simp [scaledMollifier, hzero, s, hs_def]
+        simp [scaledMollifier, hzero, s]
       exact hx_ne this
     -- Hence s x ∈ support ψ ⊆ tsupport ψ.
     have : s x ∈ Function.support ψ := by simpa [Function.support] using hψ_ne
@@ -131,7 +123,7 @@ lemma tsupport_scaledMollifier_subset
   -- Scaling map s(x) = x / η
   set s : (Fin n → ℝ) → (Fin n → ℝ) := fun x => fun i => x i / η with hs_def
   have hs_eq_smul : s = fun x : (Fin n → ℝ) => (η⁻¹ : ℝ) • x := by
-    funext x i; simp [s, hs_def, div_eq_mul_inv, mul_comm]
+    funext x i; simp [s, div_eq_mul_inv, mul_comm]
   have hs_cont : Continuous s := by
     simpa [hs_eq_smul] using (continuous_const_smul (η⁻¹ : ℝ))
   -- support(scaled) ⊆ preimage of tsupport ψ under s, hence tsupport(scaled) ⊆ that preimage
@@ -142,7 +134,7 @@ lemma tsupport_scaledMollifier_subset
     have hψ_ne : ψ (s x) ≠ 0 := by
       intro hzero
       have : scaledMollifier ψ η x = 0 := by
-        simp [scaledMollifier, hzero, s, hs_def]
+        simp [scaledMollifier, hzero, s]
       exact hx_ne this
     have : s x ∈ Function.support ψ := by simpa [Function.support] using hψ_ne
     have : s x ∈ tsupport ψ := subset_tsupport _ this
@@ -164,7 +156,7 @@ lemma tsupport_scaledMollifier_subset
       simpa [Metric.mem_closedBall, dist_eq_norm] using hx
     have hnorm_smul : ‖(η⁻¹ : ℝ)‖ = η⁻¹ := by
       have : 0 < (η : ℝ) := hη_pos
-      simp [Real.norm_eq_abs, abs_inv, abs_of_pos this]
+      simp [Real.norm_eq_abs, abs_of_pos this]
     have hx'' : (η⁻¹ : ℝ) * ‖x‖ ≤ 1 := by
       simpa [hs_eq_smul, norm_smul, hnorm_smul] using hx'
     have hx_le : ‖x‖ ≤ η := by
@@ -189,7 +181,6 @@ lemma integral_scaledMollifier_eq_one
   -- ψ is integrable as it is continuous with compact support
   have hψ_int : Integrable ψ volume :=
     (hψ.smooth.continuous.integrable_of_hasCompactSupport hψ.compact_support)
-
   -- Describe the pushforward of volume under the linear map g
   have h_map_scale :
       Measure.map g (volume : Measure (Fin n → ℝ))
@@ -211,13 +202,12 @@ lemma integral_scaledMollifier_eq_one
             (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ))) :
               (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ)) x)
           = g := by
-      funext x; simp [g, hg, one_div]
+      funext x; simp [g, one_div]
     simpa [hg_lin]
       using
         Real.map_linearMap_volume_pi_eq_smul_volume_pi
           (f := ((η⁻¹ : ℝ) •
             (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ)))) h_det_ne
-
   -- Transfer integrability under the pushforward measure
   have hg_meas : Measurable g := by
     -- Use continuity of the linear map x ↦ (1/η) • x
@@ -225,14 +215,13 @@ lemma integral_scaledMollifier_eq_one
       using ((continuous_const_smul (1 / η : ℝ)).measurable)
   have hg_aemeas : AEMeasurable g volume := hg_meas.aemeasurable
   have hψ_int_map : Integrable ψ (Measure.map g volume) := by
-    have hc_ne_top : ENNReal.ofReal ((|η|) ^ n) ≠ ∞ := by simp
+    have hc_ne_top : ENNReal.ofReal ((|η|) ^ n) ≠ ⊤ := by simp
     have hψ_memLp : MemLp ψ 1 volume :=
       (memLp_one_iff_integrable (μ := volume)).2 hψ_int
     have hψ_memLp_map : MemLp ψ 1 (Measure.map g volume) := by
       simpa [h_map_scale]
         using hψ_memLp.smul_measure hc_ne_top
     exact (memLp_one_iff_integrable (μ := Measure.map g volume)).1 hψ_memLp_map
-
   -- Evaluate ∫ ψ ∘ g via mapping and smul of measure
   have h_integral_comp :
       ∫ x, ψ (g x)
@@ -245,9 +234,8 @@ lemma integral_scaledMollifier_eq_one
     have h_smul :
         ∫ y, ψ y ∂(Measure.map g volume)
           = (ENNReal.ofReal ((|η|) ^ n)).toReal * ∫ y, ψ y := by
-      simp [h_map_scale, integral_smul_measure, mul_comm, mul_left_comm, mul_assoc]
+      simp [h_map_scale, integral_smul_measure]
     exact h_map.symm.trans h_smul
-
   -- Compute the determinant factor: for g = (1/η)•id, toReal equals η^n
   have h_det_toReal :
       (ENNReal.ofReal ((|η|) ^ n)).toReal = η ^ (n : ℝ) := by
@@ -256,7 +244,6 @@ lemma integral_scaledMollifier_eq_one
     -- Rewrite to ofReal/toReal and use nonnegativity of η^n
     have h_nonneg : 0 ≤ η ^ n := pow_nonneg (le_of_lt h_pos) _
     simp [h_abs, Real.rpow_natCast, h_nonneg]
-
   -- Now compute the integral of the scaled mollifier
   have h_mη_as_comp :
       (fun y => scaledMollifier ψ η y)
@@ -265,9 +252,8 @@ lemma integral_scaledMollifier_eq_one
     have hg_apply : g y = (fun i => y i / η) := by
       funext i
       -- ((1/η) • y) i = (1/η) * y i = y i * η⁻¹ = y i / η
-      simp [g, hg, one_div, div_eq_mul_inv, mul_comm]
+      simp [g, div_eq_mul_inv, mul_comm]
     simp [scaledMollifier, hg_apply]
-
   calc
     ∫ x, scaledMollifier ψ η x
         = (η ^ (-(n : ℝ))) * ∫ x, ψ (g x) := by
@@ -276,7 +262,8 @@ lemma integral_scaledMollifier_eq_one
             ((ENNReal.ofReal ((|η|) ^ n)).toReal * ∫ y, ψ y) := by
           simp [h_integral_comp]
     _   = ((η ^ (-(n : ℝ))) * (η ^ (n : ℝ))) * ∫ y, ψ y := by
-          simp [h_det_toReal, mul_comm, mul_left_comm, mul_assoc]
+          rw [h_det_toReal]
+          ring
     _   = (1 : ℝ) * ∫ y, ψ y := by
       -- Simplify (η^(-n)) * (η^n) = 1, then multiply both sides by ∫ ψ
       have hpow_ne_zero : η ^ (n : ℝ) ≠ 0 := by
@@ -315,7 +302,7 @@ lemma core_indicator_eLpNorm_bound
       (eLpNorm_le_of_ae_bound (μ := volume.restrict coreSet) (p := p) (f := g) h_bound)
   -- Evaluate the total mass of the restricted measure on `univ`.
   have h_measure_univ : (volume.restrict coreSet) Set.univ = volume coreSet := by
-    simp [Measure.restrict_apply, h_core_meas]
+    simp [Measure.restrict_apply]
   simpa [h_indicator_eq, h_measure_univ] using h_le_restrict
 
 /--
@@ -350,7 +337,6 @@ theorem mollifier_converges_continuous
   set mη : (Fin n → ℝ) → ℝ := fun y => scaledMollifier ψ η y with hmη
   set g : (Fin n → ℝ) → (Fin n → ℝ) := fun x => (1 / η) • x with hg
   have hη_ne_zero : (η : ℝ) ≠ 0 := ne_of_gt hη_pos
-
   -- Change of variables: compute ∫ mη = 1 using hψ.normalized.
   have hψ_int : Integrable ψ volume :=
     (hψ.smooth.continuous.integrable_of_hasCompactSupport hψ.compact_support)
@@ -375,13 +361,12 @@ theorem mollifier_converges_continuous
             (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ))) :
               (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ)) x)
           = g := by
-      funext x; simp [g, hg, one_div]
+      funext x; simp [g, one_div]
     simpa [hg_lin]
       using
         Real.map_linearMap_volume_pi_eq_smul_volume_pi
           (f := ((η⁻¹ : ℝ) •
             (LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ)))) h_det_ne
-
   -- Evaluate ∫ ψ ∘ g by mapping along `g` and then using `integral_smul_measure`.
   have hg_meas : Measurable g := by
     -- g is linear, hence measurable
@@ -390,14 +375,13 @@ theorem mollifier_converges_continuous
   have hg_aemeas : AEMeasurable g volume := hg_meas.aemeasurable
   have hψ_int_map : Integrable ψ (Measure.map g volume) := by
     -- Transfer integrability along the smul measure identity.
-    have hc_ne_top : ENNReal.ofReal ((|η|) ^ n) ≠ ∞ := by simp
+    have hc_ne_top : ENNReal.ofReal ((|η|) ^ n) ≠ ⊤ := by simp
     have hψ_memLp : MemLp ψ 1 volume :=
       (memLp_one_iff_integrable (μ := volume)).2 hψ_int
     have hψ_memLp_map : MemLp ψ 1 (Measure.map g volume) := by
       simpa [h_map_scale]
         using hψ_memLp.smul_measure hc_ne_top
     exact (memLp_one_iff_integrable (μ := Measure.map g volume)).1 hψ_memLp_map
-
   have h_integral_comp :
       ∫ x, ψ (g x) =
         (ENNReal.ofReal ((|η|) ^ n)).toReal * ∫ y, ψ y := by
@@ -411,9 +395,8 @@ theorem mollifier_converges_continuous
     have h_smul :
         ∫ y, ψ y ∂(Measure.map g volume)
           = (ENNReal.ofReal ((|η|) ^ n)).toReal * ∫ y, ψ y := by
-      simp [h_map_scale, integral_smul_measure, mul_comm, mul_left_comm, mul_assoc]
+      simp [h_map_scale, integral_smul_measure]
     exact h_map.symm.trans h_smul
-
   -- Compute the determinant factor: for g = (1/η)•id, toReal equals η^n.
   have h_det_toReal :
       (ENNReal.ofReal ((|η|) ^ n)).toReal = η ^ (n : ℝ) := by
@@ -421,7 +404,6 @@ theorem mollifier_converges_continuous
     have h_abs : |η| = η := by simp [abs_of_pos h_pos]
     have h_nonneg : 0 ≤ η ^ n := pow_nonneg (le_of_lt h_pos) _
     simp [h_abs, Real.rpow_natCast, h_nonneg]
-
   -- From the above, obtain ∫ mη = 1.
   have h_mη_integral_one : (∫ y, mη y) = (1 : ℝ) := by
     have h_eq : (∫ y, mη y)
@@ -432,8 +414,8 @@ theorem mollifier_converges_continuous
         have hg_apply : g y = (fun i => y i / η) := by
           funext i
           -- ((1/η) • y) i = (1/η) * y i = y i * η⁻¹ = y i / η
-          simp [g, hg, one_div, div_eq_mul_inv, mul_comm]
-        simp [mη, hmη, scaledMollifier, hg_apply]
+          simp [g, div_eq_mul_inv, mul_comm]
+        simp [mη, scaledMollifier, hg_apply]
       simp [this, integral_const_mul]
     have h_norm := hψ.normalized
     have h_intψ : ∫ y, ψ y = 1 := h_norm
@@ -451,7 +433,8 @@ theorem mollifier_converges_continuous
     -- Combine the equalities
     have : (∫ y, mη y)
         = ((η ^ (-(n : ℝ))) * (η ^ (n : ℝ))) * ∫ y, ψ y := by
-      simpa [h_det_toReal, mul_comm, mul_left_comm, mul_assoc] using this
+      rw [h_det_toReal] at this
+      linarith
     -- Replace the scalar product with 1 * ∫ ψ using inv_mul_cancel₀ on η^n
     have h_pow_ne_zero_nat : η ^ n ≠ 0 := pow_ne_zero _ hη_ne_zero
     have : (∫ y, mη y) = (1 : ℝ) * ∫ y, ψ y := by
@@ -464,7 +447,6 @@ theorem mollifier_converges_continuous
         _ = 1 * ∫ y, ψ y := by
             rw [inv_mul_cancel₀ h_pow_ne_zero_nat]
     simpa [h_intψ]
-
   -- Main estimate: bound the difference by ε using uniform continuity and support of mη.
   intro x
   -- Rewrite the difference using ∫ mη = 1 then apply norm-integral ≤ integral-norm
@@ -486,7 +468,6 @@ theorem mollifier_converges_continuous
       have : mη y = scaledMollifier ψ η y := rfl
       rw [this, hy]
       simp)
-
   -- Continuity facts for the integrand pieces
   have h_div_cont : Continuous (fun y : (Fin n → ℝ) => fun i => y i / η) := by
     have :
@@ -503,7 +484,6 @@ theorem mollifier_converges_continuous
     have h_sub : Continuous (fun y : (Fin n → ℝ) => x - y) :=
       continuous_const.sub continuous_id
     exact hf_cont.comp h_sub
-
   -- Integrability of the convolution integrand via compact support
   have h_prod_cont :
       Continuous (fun y : (Fin n → ℝ) => f (x - y) * mηC y) := by
@@ -519,7 +499,6 @@ theorem mollifier_converges_continuous
   have h_prod_integrable :
       Integrable (fun y : (Fin n → ℝ) => f (x - y) * mηC y) volume :=
     h_prod_cont.integrable_of_hasCompactSupport h_prod_compact
-
   -- Also record integrability of the constant×mη term
   have h_const_mul_integrable :
       Integrable (fun y : (Fin n → ℝ) => (f x) * mηC y) volume := by
@@ -533,7 +512,6 @@ theorem mollifier_converges_continuous
           (HasCompactSupport.mul_right
             (f := mηC) (f' := fun _y : (Fin n → ℝ) => (f x)) h_mηC_compact)
     exact h_cont.integrable_of_hasCompactSupport h_compact
-
   -- Convert the difference to a single integral and bound it
   have h_diff_eq_integral :
       f x - ∫ y, f (x - y) * (mη y) =
@@ -544,17 +522,14 @@ theorem mollifier_converges_continuous
     -- Rearrange to obtain the desired equality
     simpa [mηC, h_const_integral, sub_eq_add_neg]
       using h_sub.symm
-
   have h_to_single :
       ∫ y, ((f x) * (mηC y) - (f (x - y) * mηC y))
         = ∫ y, ((f x - f (x - y)) * mηC y) := by
     refine integral_congr_ae ?_
     refine Filter.Eventually.of_forall ?_
     intro y; ring
-
   have h_nonneg_mη : ∀ y, 0 ≤ mη y :=
     scaledMollifier_nonneg hψ.nonneg (le_of_lt hη_pos)
-
   -- Pointwise bound: ‖(f x - f (x - y)) * mηC y‖ ≤ (ε/2) * mη y
   have h_pointwise_bound :
       ∀ᵐ y ∂volume,
@@ -596,8 +571,7 @@ theorem mollifier_converges_continuous
         simpa [this, mul_comm]
           using mul_le_mul_of_nonneg_right h_uc_le (by simp)
       simpa [h_norm_mηC]
-        using this.trans_eq (by simp [h_norm_mηC, mul_comm, mul_left_comm, mul_assoc])
-
+        using this.trans_eq (by simp [h_norm_mηC, mul_comm])
   -- Convert to an integral bound
   have h_diff_mul_cont :
       Continuous (fun y : (Fin n → ℝ) => (f x - f (x - y)) * mηC y) := by
@@ -633,14 +607,12 @@ theorem mollifier_converges_continuous
       h_cont.integrable_of_hasCompactSupport h_compact
     simpa [mul_comm, mul_left_comm, mul_assoc]
       using h_mη_int.mul_const (ε / 2)
-
   have h_int_norm_le :
       ∫ y, ‖(f x - f (x - y)) * mηC y‖
         ≤ ∫ y, (ε / 2) * mη y := by
     refine MeasureTheory.integral_mono_ae
         h_integrable_left h_integrable_right ?_
     exact h_pointwise_bound
-
   -- Combine everything
   have h_main_bound :
       ‖f x - ∫ y, f (x - y) * (mη y)‖ ≤ ε / 2 := by
@@ -662,7 +634,6 @@ theorem mollifier_converges_continuous
     have : ∫ y, ‖(f x - f (x - y)) * mηC y‖ ≤ ε / 2 := by
       simpa [h3, h4] using h_int_norm_le
     exact (h1 ▸ (le_trans h2 this))
-
   -- Conclude strict inequality using ε/2 < ε
   have hhalf_lt : ε / 2 < ε := by have := half_lt_self hε; simpa using this
   exact lt_of_le_of_lt h_main_bound hhalf_lt
@@ -685,7 +656,7 @@ lemma eLpNorm_triangle_inequality
       (fun x => f x - h x) =
         (fun x => f x - g x) + fun x => g x - h x := by
     funext x
-    simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+    simp [sub_eq_add_neg, add_left_comm, add_assoc]
   simpa [h_decomp] using
     (eLpNorm_add_le (μ := volume) (p := p)
       (f := fun x => f x - g x)
@@ -716,7 +687,7 @@ lemma eLpNorm_triangle_three
         (fun x => g x - φ x) =
           (fun x => g x - ψ x) + fun x => ψ x - φ x := by
       funext x
-      simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+      simp [sub_eq_add_neg, add_left_comm, add_assoc]
     simpa [h_eq] using h_sum
   have h_triangle₁ :=
     eLpNorm_triangle_inequality (f := f) (g := g) (h := φ) (p := p) hp hfg hgφ
@@ -783,7 +754,7 @@ theorem mollifier_converges_Lp
     (f : (Fin n → ℝ) → ℂ)
     (ψ : (Fin n → ℝ) → ℝ)
     (p : ℝ≥0∞)
-    (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞)
+    (hp : 1 ≤ p) (hp_ne_top : p ≠ ⊤)
     (hf : MemLp f p volume)
     (hψ : IsApproximateIdentity ψ) :
     ∀ ε > 0, ∃ δ > 0, ∀ η : ℝ, 0 < η → η < δ →
@@ -794,13 +765,11 @@ theorem mollifier_converges_Lp
   obtain ⟨g, hg_cont, hg_compact, hg_memLp, hfg_small⟩ :=
     continuous_compactSupport_dense_Lp (p := p) (hp_ne_top := hp_ne_top)
       f hf (ε := ε / 4) (by positivity)
-
   -- A convenient symmetric form: ‖g - f‖ₚ = ‖f - g‖ₚ
   have hgf_small : eLpNorm (fun x => g x - f x) p volume < ENNReal.ofReal (ε / 4) := by
     have : eLpNorm (fun x => g x - f x) p volume = eLpNorm (g - f) p volume := rfl
     rw [this, eLpNorm_sub_comm]
     exact hfg_small
-
   -- Choose a finite-measure core set covering the supports uniformly in small η
   obtain ⟨R, hR_subset, hR_ge_one⟩ := tsupport_subset_closedBall g hg_compact
   set S : Set (Fin n → ℝ) := Metric.closedBall (0 : Fin n → ℝ) (R + 1) with hS_def
@@ -811,14 +780,13 @@ theorem mollifier_converges_Lp
   have hμS_lt_top : volume S < ⊤ := by
     simpa [hS_def]
       using (MeasureTheory.measure_closedBall_lt_top (x := (0 : Fin n → ℝ)) (r := R + 1))
-  have hμS_ne_top : volume S ≠ ∞ := ne_of_lt hμS_lt_top
+  have hμS_ne_top : volume S ≠ ⊤ := ne_of_lt hμS_lt_top
   have hμS_pos : 0 < volume S := by
     have hR_pos : 0 < R + 1 := by linarith [hR_ge_one]
     calc 0 < volume (Metric.ball (0 : Fin n → ℝ) (R + 1)) := Metric.measure_ball_pos volume 0 hR_pos
       _ ≤ volume S := by
         rw [hS_def]
         exact measure_mono Metric.ball_subset_closedBall
-
   -- Uniform (sup-norm) control for g − g * ψ_η from continuity + compact support
   -- Pick a small target on S so that its Lᵖ bound is ≤ ε/2.
   have h_exponent_nonneg : 0 ≤ 1 / p.toReal := by
@@ -846,22 +814,18 @@ theorem mollifier_converges_Lp
     exact div_pos hε hden_pos
   obtain ⟨δ₀, hδ₀_pos, hδ₀⟩ :=
     mollifier_converges_continuous g ψ hg_cont hg_compact hψ δg hδg_pos
-
   -- We will require η < min δ₀ 1 to also control the support of ψ_η.
   refine ⟨min δ₀ 1, lt_min hδ₀_pos zero_lt_one, ?_⟩
   intro η hη_pos hη_lt
-
   -- Abbreviations
   set mη : (Fin n → ℝ) → ℝ := fun y => scaledMollifier ψ η y with hmη
   let mηC : (Fin n → ℝ) → ℂ := fun y => (mη y : ℝ)
-
   -- Estimate by three-way triangle inequality in Lᵖ
   -- Define the two convolutions
   set conv_f : (Fin n → ℝ) → ℂ :=
     fun x => ∫ y, f (x - y) * mηC y with hconvf
   set conv_g : (Fin n → ℝ) → ℂ :=
     fun x => ∫ y, g (x - y) * mηC y with hconvg
-
   -- Show measurability of the subterms needed for the triangle inequality
   have hfg_meas : AEStronglyMeasurable (fun x => f x - g x) volume :=
     hf.aestronglyMeasurable.sub hg_memLp.aestronglyMeasurable
@@ -889,14 +853,12 @@ theorem mollifier_converges_Lp
       have : scaledMollifier ψ η y = 0 := hy
       rw [this]
       simp)
-
   have hmη_memLp_one : MemLp mηC 1 volume := by
     -- Move integrability from ℝ to ℂ via continuous/compact support
     -- (mηC has compact support and is continuous)
     have h_intC : Integrable mηC volume :=
       h_mηC_cont.integrable_of_hasCompactSupport h_mηC_compact
     simpa [memLp_one_iff_integrable (μ := volume)] using h_intC
-
   -- Convolution bounds (Young with r = p, q = 1): obtain MemLp and eLpNorm bounds
   have h_conv_f_memLp : MemLp conv_f p volume ∧
       eLpNorm conv_f p volume ≤ eLpNorm f p volume * eLpNorm mηC 1 volume := by
@@ -921,17 +883,14 @@ theorem mollifier_converges_Lp
   have hconv_diff_meas :
       AEStronglyMeasurable (fun x => conv_g x - conv_f x) volume :=
     h_conv_g_meas.sub h_conv_f_meas
-
   -- Apply the three-term triangle inequality
   have h_triangle :=
     eLpNorm_triangle_three (f := f) (g := g)
       (ψ := conv_g) (φ := conv_f) (p := p) hp hfg_meas hg_conv_meas hconv_diff_meas
-
   -- We will now bound each of the three terms on the right-hand side.
   -- Term A: ‖f - g‖ₚ < ε/4 (by density choice)
   have hA_lt :
       eLpNorm (fun x => f x - g x) p volume < ENNReal.ofReal (ε / 4) := hfg_small
-
   -- Term C: ‖conv_g - conv_f‖ₚ ≤ ‖g - f‖ₚ · ‖mηC‖₁, and ‖mηC‖₁ = 1
   have h_conv_sub_ae :
       (fun x => ∫ a, (g (x - a) - f (x - a)) * mηC a) =ᶠ[ae volume]
@@ -974,7 +933,6 @@ theorem mollifier_converges_Lp
           apply Function.support_mul_subset_right
         exact h_mηC_compact.mono this
       exact h_prod_cont.integrable_of_hasCompactSupport h_prod_compact
-
     have h_int_f_ae :
         ∀ᵐ x ∂volume, Integrable (fun y => f (x - y) * mηC y) volume := by
       by_cases hp_one : p = 1
@@ -1092,7 +1050,6 @@ theorem mollifier_converges_Lp
         (fun x => ∫ a, (g (x - a) - f (x - a)) * mηC a))
         (g := fun x => conv_g x - conv_f x) h_conv_sub_ae
     simpa [MeasureTheory.convolution] using ge_of_eq h_congr
-
   -- Evaluate ‖mηC‖₁ = 1 using normalization and nonnegativity
   have hη_nonneg : 0 ≤ η := le_of_lt hη_pos
   have hmη_nonneg : ∀ x, 0 ≤ mη x :=
@@ -1128,7 +1085,6 @@ theorem mollifier_converges_Lp
     rw [h_enorm_eq]
     rw [integral_scaledMollifier_eq_one hψ hη_pos]
     simp
-
   -- Now convert Term C into < ε/4 using the bound on ‖g - f‖ₚ
   have hC_lt :
       eLpNorm (fun x => conv_g x - conv_f x) p volume < ENNReal.ofReal (ε / 4) := by
@@ -1141,7 +1097,6 @@ theorem mollifier_converges_Lp
         _ = eLpNorm (fun x => g x - f x) p volume * 1 := by rw [hmη_one]
         _ = eLpNorm (fun x => g x - f x) p volume := by ring
     exact lt_of_le_of_lt h_mul_le hgf_small
-
   -- Term B: ‖g - conv_g‖ₚ on the finite-measure core set S is small by uniform bound
   -- First, note that outside S, both g and conv_g vanish once η < 1.
   -- Hence the difference equals its indicator on S.
@@ -1166,7 +1121,6 @@ theorem mollifier_converges_Lp
         calc mηC x = ↑(mη x) := rfl
           _ = ↑(0 : ℝ) := by rw [hzero]
           _ = (0 : ℂ) := by norm_num
-      show scaledMollifier ψ η x ≠ 0
       convert this
     have h_mηC_tsupport_subset :
         tsupport mηC ⊆ Metric.closedBall (0 : Fin n → ℝ) η := by
@@ -1197,7 +1151,6 @@ theorem mollifier_converges_Lp
         hR_subset h_mηC_tsupport_subset
     -- Finish by transitivity
     exact h_conv_support.trans h_ball_subset
-
   have h_indicator_eq :
       (fun x => g x - conv_g x)
         = (fun x => Set.indicator S (fun z => g z - conv_g z) x) := by
@@ -1229,7 +1182,6 @@ theorem mollifier_converges_Lp
           exact hxS hxS'
         exact image_eq_zero_of_notMem_tsupport hx_notin
       simp [Set.indicator, hxS, hg_zero, hconv_zero]
-
   -- Use the indicator bound on S with the uniform ε-control given by mollifier_converges_continuous
   have h_pointwise_uniform : ∀ᵐ x ∂volume.restrict S,
       ‖g x - conv_g x‖ ≤ δg := by
@@ -1245,7 +1197,6 @@ theorem mollifier_converges_Lp
     apply Filter.Eventually.of_forall
     intro x
     exact h_all x
-
   have hB_bound :
       eLpNorm (fun x => g x - conv_g x) p volume
         ≤ (volume S) ^ (1 / p.toReal) * ENNReal.ofReal δg := by
@@ -1262,7 +1213,6 @@ theorem mollifier_converges_Lp
           -- a.e. bound on S
           simpa using h_pointwise_uniform)
     simpa [h_indicator_eq'] using h_core
-
   -- Evaluate the right-hand side as ENNReal.ofReal (ε/2)
   have h_mul_eq :
       (volume S) ^ (1 / p.toReal) * ENNReal.ofReal δg
@@ -1284,20 +1234,17 @@ theorem mollifier_converges_Lp
         · exact ne_of_gt (ENNReal.rpow_pos_of_nonneg hμS_pos h_exponent_nonneg)
         · exact h_powS_ne_top
       field_simp [ne_of_gt hpow_pos]
-      ring
     -- Put the pieces together
     calc
       (volume S) ^ (1 / p.toReal) * ENNReal.ofReal δg
           = ENNReal.ofReal ((volume S) ^ (1 / p.toReal)).toReal * ENNReal.ofReal δg := h_mul_eq
       _ = ENNReal.ofReal (((volume S) ^ (1 / p.toReal)).toReal * δg) := h_mul
       _ = ENNReal.ofReal (ε / 2) := by rw [h_target]
-
   have hB_le :
       eLpNorm (fun x => g x - conv_g x) p volume ≤ ENNReal.ofReal (ε / 2) := by
     calc eLpNorm (fun x => g x - conv_g x) p volume
         ≤ (volume S) ^ (1 / p.toReal) * ENNReal.ofReal δg := hB_bound
       _ = ENNReal.ofReal (ε / 2) := h_prod_eq
-
   -- Finally, add the three bounds: ε/4 + ε/2 + ε/4 = ε
   -- Use monotonicity of addition in ℝ≥0∞.
   have h_sum_le :

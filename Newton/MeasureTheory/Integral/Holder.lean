@@ -126,15 +126,14 @@ theorem holder_inequality_one_infty
         have hδpos : 0 < ε / a := div_pos hε ha_pos
         have hmain := h_eps hδpos
         have hmul : a * (sInf S + ε / a) = a * sInf S + ε := by
-          simp [mul_add, div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc, ha_ne]
+          simp [mul_add, div_eq_mul_inv, mul_left_comm, ha_ne]
         simpa [hmul, mul_comm, mul_left_comm, mul_assoc] using hmain
       have h_lt : ∀ {ε : ℝ}, 0 < ε → A < a * sInf S + ε := by
         intro ε hε
         have hhalf : 0 < ε / 2 := half_pos hε
         have hineq := h_eps' hhalf
-        have hlt : a * sInf S + ε / 2 < a * sInf S + ε := by
-          have := half_lt_self hε
-          exact add_lt_add_left this _
+        have hlt : a * sInf S + ε / 2 < a * sInf S + ε :=
+          add_lt_add_right (half_lt_self hε) (a * sInf S)
         exact lt_of_le_of_lt hineq hlt
       exact (le_iff_forall_pos_lt_add).2 fun ε hε => h_lt hε
   simpa [A, a, S, mul_comm, mul_left_comm, mul_assoc] using h_final
@@ -567,7 +566,7 @@ theorem memLp_mul_of_memLp_conjugate
   have h_finite' : HasFiniteIntegral (fun x => f x * g x) μ :=
     h_finite.congr' <|
       (Filter.Eventually.of_forall fun x => by
-        simp [Real.norm_eq_abs, abs_mul])
+        simp [Real.norm_eq_abs])
   simpa using h_finite'
 
 lemma eLpNorm_toReal_pos_of_ae_pos
@@ -623,7 +622,9 @@ theorem conjugate_exponent_formula
   have hq_pos_real : 0 < qrReal := div_pos hpr_pos hpr_sub_pos
   have hq_real_gt_one : 1 < qrReal := by
     have hdiff : qrReal - 1 = 1 / (pr - 1) := by
-      field_simp [hqrReal, hpr_ne_zero, hpr_sub_ne_zero]
+      rw [hqrReal]
+      field_simp
+      ring
     have hpos' : 0 < qrReal - 1 := by
       have h := one_div_pos.2 hpr_sub_pos
       exact hdiff.symm ▸ h
@@ -641,7 +642,9 @@ theorem conjugate_exponent_formula
     have := (ENNReal.ofReal_inv_of_pos hq_pos_real).symm
     simpa [hq, one_div] using this
   have hsum_real : 1 / pr + 1 / qrReal = 1 := by
-    field_simp [hqrReal, hpr_ne_zero, hpr_sub_ne_zero]
+    rw [hqrReal]
+    field_simp
+    ring
   have hsum_real_inv : pr⁻¹ + qrReal⁻¹ = 1 := by simpa [one_div] using hsum_real
   have hsum : 1 / p + 1 / q = 1 := by
     have h1 : 0 ≤ 1 / pr := by positivity
@@ -821,7 +824,8 @@ lemma holder_kernel_pairing_bound
       have h_eq :=
         (MeasureTheory.ofReal_integral_eq_lintegral_ofReal
             h_bound_integrable' h_bound_nonneg).symm
-      simp [h_eq]
+      rw [h_eq]
+      simp [ENNReal.ofReal_lt_top]
     -- Combine the estimates to obtain finiteness of the product lintegral.
     have h_prod_lintegral_lt_top :
         ∫⁻ z, ENNReal.ofReal (Function.uncurry G z) ∂μ.prod ν < ∞ := by

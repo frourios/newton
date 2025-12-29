@@ -193,7 +193,7 @@ theorem tonelli_norm_product_bound
         ENNReal.ofReal (‖f (p.1 - p.2)‖ * ‖g p.2‖))
         = fun p : G × G => Af (p.1 - p.2) * Ag p.2 := by
     funext p
-    simp [Af, Ag, ENNReal.ofReal_mul, mul_comm, mul_left_comm, mul_assoc]
+    simp [Af, Ag, ENNReal.ofReal_mul, mul_comm]
   -- Measurability data for the composed kernels.
   have hAg_prod_aemeas :
       AEMeasurable (fun q : G × G => Ag q.2) (μ.prod μ) :=
@@ -255,10 +255,13 @@ theorem tonelli_norm_product_bound
       ∫⁻ p : G × G,
           ENNReal.ofReal (‖f (p.1 - p.2)‖ * ‖g p.2‖) ∂(μ.prod μ)
         = (∫⁻ x, Af x ∂μ) * (∫⁻ y, Ag y ∂μ) := by
+    have h_eq : ∀ p : G × G,
+        ENNReal.ofReal (‖f (p.1 - p.2)‖ * ‖g p.2‖) = Af (p.1 - p.2) * Ag p.2 := by
+      intro p
+      simp only [Af, Ag, ENNReal.ofReal_mul (norm_nonneg _)]
     calc
       ∫⁻ p, ENNReal.ofReal (‖f (p.1 - p.2)‖ * ‖g p.2‖) ∂(μ.prod μ)
-          = ∫⁻ p, Af (p.1 - p.2) * Ag p.2 ∂(μ.prod μ) := by
-              simp [h_kernel_eq]
+          = ∫⁻ p, Af (p.1 - p.2) * Ag p.2 ∂(μ.prod μ) := by simp only [h_eq]
       _ = ∫⁻ p, Af p.1 * Ag p.2 ∂(μ.prod μ) := h_change
       _ = (∫⁻ x, Af x ∂μ) * (∫⁻ y, Ag y ∂μ) := h_tonelli
   have h_kernel_eval' :
@@ -271,11 +274,17 @@ theorem tonelli_norm_product_bound
   have h_prod_fin :
       ∫⁻ p : G × G,
           ENNReal.ofReal (‖f (p.1 - p.2)‖ * ‖g p.2‖) ∂(μ.prod μ) < ∞ := by
-    simpa [h_kernel_eval] using h_fin
+    rw [h_kernel_eval]
+    exact h_fin
   have h_kernel_fin :
       ∫⁻ p : G × G, ENNReal.ofReal ‖f (p.1 - p.2) * g p.2‖ ∂(μ.prod μ) < ∞ := by
-    simpa [Af, Ag, norm_mul, ENNReal.ofReal_mul, mul_comm, mul_left_comm, mul_assoc]
-      using h_prod_fin
+    have h_eq : ∀ p : G × G,
+        ENNReal.ofReal ‖f (p.1 - p.2) * g p.2‖
+          = ENNReal.ofReal (‖f (p.1 - p.2)‖ * ‖g p.2‖) := by
+      intro p
+      rw [norm_mul]
+    simp_rw [h_eq]
+    exact h_prod_fin
   exact h_kernel_fin
 
 end TonelliProductDecomposition
@@ -635,7 +644,8 @@ theorem convolution_fiber_integrable_L2_L1
         simpa [τ, h_map] using h_map_eq
       have hH_eval :
           (fun q : G × G => Af (τ q).1 * Ag (τ q).2) = H := by
-        funext q; simp [H, τ, hH_def]
+        funext q
+        simp [H, τ]
       simpa [hH_eval] using h_eval.symm
     have h_split :
         ∫⁻ q : G × G, Af q.1 * Ag q.2 ∂(μ.prod μ)
@@ -698,7 +708,7 @@ theorem convolution_fiber_integrable_L2_L1
         have h_mp : MeasurePreserving (fun y : G => x - y) μ μ := by
           -- x - y = -(y - x), and both transformations preserve μ
           have h1 : (fun y : G => x - y) = Neg.neg ∘ (fun y => y - x) := by
-            ext y; simp [Function.comp, sub_eq_add_neg, add_comm]
+            ext y; simp [Function.comp, sub_eq_add_neg]
           -- y - x is measure-preserving (right invariance)
           have h_sub_right : MeasurePreserving (fun y : G => y - x) μ μ :=
             measurePreserving_sub_right μ x
@@ -734,7 +744,7 @@ theorem convolution_fiber_integrable_L2_L1
           have h_mp : MeasurePreserving (fun y : G => x - y) μ μ := by
             -- x - y = -(y - x), and both transformations preserve μ
             have h1 : (fun y : G => x - y) = Neg.neg ∘ (fun y => y - x) := by
-              ext y; simp [Function.comp, sub_eq_add_neg, add_comm]
+              ext y; simp [Function.comp, sub_eq_add_neg]
             -- y - x is measure-preserving (right invariance)
             have h_sub_right : MeasurePreserving (fun y : G => y - x) μ μ :=
               measurePreserving_sub_right μ x
@@ -756,7 +766,7 @@ theorem convolution_fiber_integrable_L2_L1
     -- Now H (x, y) = Af (x - y) * Ag y by definition.
     have hH_section : ∫⁻ y, H (x, y) ∂μ
         = ∫⁻ y, (‖f (x - y)‖ₑ) ^ (2 : ℝ) * ‖g y‖ₑ ∂μ := by
-      simp [H, hH_def, Af, hAf_def, Ag, hAg_def]
+      simp [H, Af, Ag]
     -- Package into `MemLp`.
     refine ⟨h_meas_x x, ?_⟩
     -- Compare the weighted L² seminorm with the finite section lintegral from Tonelli.
@@ -825,7 +835,8 @@ theorem convolution_fiber_integrable_L2_L1
         have h_ae_comp : (fun y => f (x - y)) =ᵐ[μ] (fun y => f0 (x - y)) := by
           have h_mp : MeasurePreserving (fun y : G => x - y) μ μ := by
             have h1 : (fun y : G => x - y) = Neg.neg ∘ (fun y => y - x) := by
-              ext y; simp [Function.comp, sub_eq_add_neg, add_comm]
+              ext y
+              simp [Function.comp, sub_eq_add_neg]
             have h_sub_right : MeasurePreserving (fun y : G => y - x) μ μ :=
               measurePreserving_sub_right μ x
             have h_neg : MeasurePreserving (Neg.neg : G → G) μ μ :=
@@ -838,7 +849,6 @@ theorem convolution_fiber_integrable_L2_L1
     have h_aemeas_g : AEMeasurable (fun y => ‖g y‖ₑ) μ := hg.aestronglyMeasurable.enorm
     have h_eq := lintegral_withDensity_eq_lintegral_mul₀ (μ := μ) h_aemeas_g h_aemeas_f
     simpa [mul_comm] using h_eq
-
   -- From hx, we have ∫⁻ y, ‖f (x - y)‖ₑ ∂ν < ∞
   have h_int_prod : ∫⁻ y, ‖f (x - y)‖ₑ * ‖g y‖ₑ ∂μ < ∞ := by
     rw [← h_expand]
@@ -846,7 +856,6 @@ theorem convolution_fiber_integrable_L2_L1
     -- Need to convert to ∫⁻ y, ‖f (x - y)‖ₑ ∂ν < ∞
     have : HasFiniteIntegral (fun y => ‖f (x - y)‖) ν := hx.hasFiniteIntegral
     simpa [HasFiniteIntegral] using this
-
   -- Now show that f (x - y) * g y is integrable
   -- We have ‖f (x - y) * g y‖ = ‖f (x - y)‖ * ‖g y‖
   have h_aestrong_prod : AEStronglyMeasurable (fun y => f (x - y) * g y) μ := by
@@ -860,7 +869,7 @@ theorem convolution_fiber_integrable_L2_L1
       have h_ae_comp : (fun y => f (x - y)) =ᵐ[μ] (fun y => f0 (x - y)) := by
         have h_mp : MeasurePreserving (fun y : G => x - y) μ μ := by
           have h1 : (fun y : G => x - y) = Neg.neg ∘ (fun y => y - x) := by
-            ext y; simp [Function.comp, sub_eq_add_neg, add_comm]
+            ext y; simp [Function.comp, sub_eq_add_neg]
           have h_sub_right : MeasurePreserving (fun y : G => y - x) μ μ :=
             measurePreserving_sub_right μ x
           have h_neg : MeasurePreserving (Neg.neg : G → G) μ μ :=
@@ -870,11 +879,9 @@ theorem convolution_fiber_integrable_L2_L1
         exact h_mp.quasiMeasurePreserving.ae_eq_comp hf_ae
       exact ⟨fun y => f0 (x - y), hf0_comp, h_ae_comp⟩
     exact h_aestrong_f.mul hg.aestronglyMeasurable
-
   have h_norm_eq : (fun y => ‖f (x - y) * g y‖ₑ) = (fun y => ‖f (x - y)‖ₑ * ‖g y‖ₑ) := by
     ext y
-    simp [nnnorm_mul]
-
+    simp
   refine ⟨h_aestrong_prod, ?_⟩
   simpa [HasFiniteIntegral, h_norm_eq] using h_int_prod
 

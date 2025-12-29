@@ -142,7 +142,7 @@ instance : AddCommGroup (SuNAlgebra N) where
     simp only [zero_smul, zero_matrix]
   zsmul_succ' n a := by
     apply ext
-    simp only [add_matrix, Int.ofNat_eq_coe]
+    simp only [add_matrix]
     rw [show (↑(n.succ) : ℤ) = (↑n : ℤ) + 1 from Int.natCast_succ n, add_smul, one_smul]
   zsmul_neg' n a := by
     apply ext
@@ -229,8 +229,9 @@ theorem star_mul_self_re_nonneg (z : ℂ) : (star z * z).re ≥ 0 := by
   simp only [Complex.normSq_nonneg, ge_iff_le, Complex.ofReal_re]
 
 /-- Real part of a sum equals sum of real parts -/
-theorem Complex.re_finset_sum {α : Type*} [DecidableEq α] (s : Finset α) (f : α → ℂ) :
+theorem Complex.re_finset_sum {α : Type*} (s : Finset α) (f : α → ℂ) :
     (∑ i ∈ s, f i).re = ∑ i ∈ s, (f i).re := by
+  classical
   induction s using Finset.induction_on with
   | empty => simp
   | insert a s hnotin ih => simp [Finset.sum_insert hnotin, ih]

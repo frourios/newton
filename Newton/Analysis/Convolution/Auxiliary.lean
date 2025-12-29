@@ -6,18 +6,6 @@ import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.MetricSpace.Holder
 import Newton.MeasureTheory.Integral.Tonelli
 
-/-!
-# Auxiliary Lemmas for Young's Convolution Inequality
-
-This file contains auxiliary lemmas needed for proving Young's convolution inequality,
-including:
-- Three-function Hölder inequality
-- Young exponent condition lemmas
-- ENNReal arithmetic lemmas
-- Measure-theoretic utility lemmas
-- Convolution integrand decomposition
--/
-
 open MeasureTheory Complex NNReal
 open scoped ENNReal Topology ContDiff ComplexConjugate
 
@@ -29,7 +17,7 @@ lemma lintegral_mul_mul_le_three_holder
     {α : Type*} [MeasurableSpace α] {μ : Measure α}
     {f g h : α → ℝ≥0∞}
     {p q r : ℝ≥0∞}
-    (hpqr : 1/p + 1/q + 1/r = 1)
+    (hpqr : 1 / p + 1 / q + 1 / r = 1)
     (hp_top : p ≠ ⊤) (hq_top : q ≠ ⊤) (hr_top : r ≠ ⊤)
     (hf : AEMeasurable f μ) (hg : AEMeasurable g μ) (hh : AEMeasurable h μ) :
     ∫⁻ x, f x * g x * h x ∂μ ≤
@@ -40,17 +28,17 @@ lemma lintegral_mul_mul_le_three_holder
     by_contra h_neg
     push_neg at h_neg
     have : p = 0 := le_antisymm h_neg (zero_le p)
-    simp [this, ENNReal.div_zero] at hpqr
+    simp [this] at hpqr
   have hq_pos : 0 < q := by
     by_contra h_neg
     push_neg at h_neg
     have : q = 0 := le_antisymm h_neg (zero_le q)
-    simp [this, ENNReal.div_zero] at hpqr
+    simp [this] at hpqr
   have hr_pos : 0 < r := by
     by_contra h_neg
     push_neg at h_neg
     have : r = 0 := le_antisymm h_neg (zero_le r)
-    simp [this, ENNReal.div_zero] at hpqr
+    simp [this] at hpqr
   -- Convert to real numbers
   have hp_real_pos : 0 < p.toReal := ENNReal.toReal_pos hp_pos.ne' hp_top
   have hq_real_pos : 0 < q.toReal := ENNReal.toReal_pos hq_pos.ne' hq_top
@@ -75,10 +63,6 @@ lemma lintegral_mul_mul_le_three_holder
       _ = ((1/p + 1/q) + (1/r)).toReal := by
           rw [ENNReal.toReal_add h_pq_ne_top h_finite_r]
       _ = 1 := h_sum
-  -- Define F = f^p, G = g^q, H = h^r, then f * g * h = F^(1/p) * G^(1/q) * H^(1/r)
-  -- By lintegral_prod_norm_pow_le:
-  -- ∫ F^(1/p) * G^(1/q) * H^(1/r) ≤ (∫ F)^(1/p) * (∫ G)^(1/q) * (∫ H)^(1/r)
-  --                                = (∫ f^p)^(1/p) * (∫ g^q)^(1/q) * (∫ h^r)^(1/r)
   let F : α → ℝ≥0∞ := fun x => (f x) ^ p.toReal
   let G : α → ℝ≥0∞ := fun x => (g x) ^ q.toReal
   let H : α → ℝ≥0∞ := fun x => (h x) ^ r.toReal
@@ -110,7 +94,6 @@ lemma lintegral_mul_mul_le_three_holder
   have h_sum_exp : ∑ i ∈ s, exps i = 1 := by
     simp only [s, exps]
     rw [Fin.sum_univ_three]
-    show 1/p.toReal + 1/q.toReal + 1/r.toReal = 1
     exact hpqr_real
   have h_nonneg : ∀ i ∈ s, 0 ≤ exps i := by
     intro i _
@@ -144,7 +127,7 @@ lemma lintegral_mul_mul_le_three_holder
         (∫⁻ x, h x ^ r.toReal ∂μ) ^ (1/r.toReal) := by rfl
 
 lemma young_exponent_p_le_r
-    {p q r : ℝ≥0∞} (hq : 1 ≤ q) (hpqr : 1/p + 1/q = 1 + 1/r) :
+    {p q r : ℝ≥0∞} (hq : 1 ≤ q) (hpqr : 1 / p + 1 / q = 1 + 1 / r) :
     p ≤ r := by
   -- From 1/p + 1/q = 1 + 1/r, we have 1/p ≤ 1 + 1/r
   -- Since q ≥ 1, we have 1/q ≤ 1, so 1/p ≥ 1/r
@@ -162,21 +145,21 @@ lemma young_exponent_p_le_r
   have h_one_div_q_ne_top : 1/q ≠ ⊤ := by simp [hq_pos]
   have h_sum : 1/p + 1/q < 1/r + 1 := by
     calc 1/p + 1/q < 1/r + 1/q := ENNReal.add_lt_add_right h_one_div_q_ne_top h_inv
-      _ ≤ 1/r + 1 := add_le_add_left hq_inv (1/r)
+      _ ≤ 1/r + 1 := add_le_add_right hq_inv (1/r)
   rw [add_comm (1/r) 1] at h_sum
   rw [hpqr] at h_sum
   exact lt_irrefl _ h_sum
 
 /-- Auxiliary lemma to derive q ≤ r from Young exponent condition -/
 lemma young_exponent_q_le_r
-    {p q r : ℝ≥0∞} (hp : 1 ≤ p) (hpqr : 1/p + 1/q = 1 + 1/r) :
+    {p q r : ℝ≥0∞} (hp : 1 ≤ p) (hpqr : 1 / p + 1 / q = 1 + 1 / r) :
     q ≤ r := by
   have hpqr' : 1/q + 1/p = 1 + 1/r := by rw [add_comm]; exact hpqr
   exact young_exponent_p_le_r hp hpqr'
 
 /-- Auxiliary lemma to derive r ≥ 1 from Young exponent condition -/
 lemma young_exponent_r_ge_one
-    {p q r : ℝ≥0∞} (hp : 1 ≤ p) (hq : 1 ≤ q) (hpqr : 1/p + 1/q = 1 + 1/r) :
+    {p q r : ℝ≥0∞} (hp : 1 ≤ p) (hq : 1 ≤ q) (hpqr : 1 / p + 1 / q = 1 + 1 / r) :
     1 ≤ r := by
   have hp_inv : 1/p ≤ 1 := by rw [one_div, ENNReal.inv_le_one]; exact hp
   have hq_inv : 1/q ≤ 1 := by rw [one_div, ENNReal.inv_le_one]; exact hq
@@ -226,7 +209,7 @@ lemma young_exponent_to_three_holder
     {p q r : ℝ≥0∞}
     (hp : 1 ≤ p) (hq : 1 ≤ q) (hr : 1 ≤ r)
     (hp_ne_top : p ≠ ⊤) (hq_ne_top : q ≠ ⊤) (hr_ne_top : r ≠ ⊤)
-    (hpqr : 1/p + 1/q = 1 + 1/r) :
+    (hpqr : 1 / p + 1 / q = 1 + 1 / r) :
     1/r + (r-p)/(p*r) + (r-q)/(q*r) = 1 := by
   -- p, q, r are positive and finite
   have hp_pos : p ≠ 0 := (one_pos.trans_le hp).ne'
@@ -305,31 +288,15 @@ lemma decomposition_exponents_pos
   have h_one_sub_q : (0 : ℝ≥0∞) ≤ 1 - q / r := zero_le _
   exact ⟨hp_div_pos, hq_div_pos, h_one_sub_p, h_one_sub_q⟩
 
-/-- Lebesgue measure of the whole space `(Fin n → ℝ)` is infinite
-for positive dimension `n`. -/
-lemma volume_univ_fin (hn : 0 < n) :
-    volume (Set.univ : Set (Fin n → ℝ)) = (∞ : ℝ≥0∞) := by
-  -- `Fin n` is nonempty since `0 < n`.
-  haveI : Nonempty (Fin n) := ⟨⟨0, hn⟩⟩
-  -- Use the general fact that an additive Haar measure on a noncompact
-  -- locally compact additive group has infinite total mass.
-  simp
-
-/-- Limintegral of a constant over `(Fin n → ℝ)` w.r.t. `volume`. -/
-lemma lintegral_const_volume (c : ℝ≥0∞) :
-    ∫⁻ (_ : Fin n → ℝ), c ∂(volume) = c * volume (Set.univ : Set (Fin n → ℝ)) := by
-  simp [Finset.univ]
-
 /-- For a nonzero constant `c`, the integral of `c` over the whole space is infinite
 when the dimension `n` is positive. -/
 lemma lintegral_const_top_of_volume_univ (c : ℝ≥0∞) (hc : c ≠ 0) (hn : 0 < n) :
     ∫⁻ (_ : Fin n → ℝ), c ∂(volume) = ⊤ := by
-  -- This will follow from `lintegral_const_volume` and `volume_univ_fin`.
-  have h_const := lintegral_const_volume (n := n) c
-  have h_vol : volume (Set.univ : Set (Fin n → ℝ)) = (∞ : ℝ≥0∞) :=
-    volume_univ_fin (n := n) hn
+  have h_vol : volume (Set.univ : Set (Fin n → ℝ)) = (∞ : ℝ≥0∞) := by
+    haveI : Nonempty (Fin n) := ⟨⟨0, hn⟩⟩
+    simp
   -- Replace the volume of the whole space by `∞` and use `ENNReal.mul_top`.
-  simp [h_const, h_vol, ENNReal.mul_top, hc]
+  simp [h_vol, ENNReal.mul_top, hc]
 
 /-- Characterization of vanishing `lintegral` in terms of a.e. vanishing (ℝ≥0∞-valued). -/
 lemma lintegral_eq_zero_iff_ae_eq_zero
@@ -416,7 +383,7 @@ lemma convolution_integrand_decomposition
     (p q r : ℝ≥0∞)
     (hp : 1 ≤ p) (hq : 1 ≤ q)
     (hp_ne_top : p ≠ ⊤) (hq_ne_top : q ≠ ⊤) (hr_ne_top : r ≠ ⊤)
-    (hpqr : 1/p + 1/q = 1 + 1/r)
+    (hpqr : 1 / p + 1 / q = 1 + 1 / r)
     (x y : Fin n → ℝ) :
     ‖f y‖ * ‖g (x - y)‖ =
       (‖f y‖^(p/r).toReal * ‖g (x - y)‖^(q/r).toReal) *
@@ -535,7 +502,7 @@ lemma convolution_integrand_decomposition
     calc
       a * b = (a ^ (p.toReal / r.toReal) * a ^ (1 - p/r).toReal) *
               (b ^ (q.toReal / r.toReal) * b ^ (1 - q/r).toReal) := by
-                simp [h_a', h_b', mul_comm, mul_left_comm, mul_assoc]
+                simp [h_a', h_b']
       _ = (a^(p.toReal / r.toReal) * b^(q.toReal / r.toReal)) *
           a^(1 - p/r).toReal * b^(1 - q/r).toReal := by
                 ring_nf

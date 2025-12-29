@@ -81,7 +81,7 @@ lemma triangle_inequality_aux
     have h_rewrite :
         (fun x => f x + g x + h x)
           = fun x => f x + (g x + h x) := by
-      funext x; simp [add_comm, add_left_comm, add_assoc]
+      funext x; simp [add_comm, add_left_comm]
     simpa [h_rewrite] using h_total_aux
   have h_total_le :
       eLpNorm (fun x => f x + g x + h x) 1 volume
@@ -160,7 +160,6 @@ lemma exists_mollifier_scale
   -- Construct a basic mollifier using ContDiffBump
   -- We use a bump function supported in the unit ball
   let ψ_base : ContDiffBump (0 : Fin n → ℝ) := ⟨1/2, 1, by norm_num, by norm_num⟩
-
   -- The mollifier needs to be normalized so that ∫ ψ = 1
   -- For a ContDiffBump, the integral is positive and finite
   have h_integral_pos : 0 < ∫ x, ψ_base x := by
@@ -168,49 +167,38 @@ lemma exists_mollifier_scale
     -- open-positive measure (here, Lebesgue measure on ℝⁿ).
     simpa using
       (ContDiffBump.integral_pos (μ := (volume : Measure (Fin n → ℝ))) (f := ψ_base))
-
   have h_integral_finite : Integrable (fun x => ψ_base x) volume := by
     -- The bump function has compact support and is continuous, so it's integrable
     apply Continuous.integrable_of_hasCompactSupport
     · exact ψ_base.continuous
     · exact ψ_base.hasCompactSupport
-
   -- Define the normalization constant
   let C := ∫ x, ψ_base x
   have hC_pos : 0 < C := h_integral_pos
   have hC_ne_zero : C ≠ 0 := ne_of_gt hC_pos
-
   -- Normalized mollifier
   let ψ : (Fin n → ℝ) → ℝ := fun x => (1 / C) * ψ_base x
-
   -- Verify properties of ψ
   have hψ_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) ψ := by
     apply ContDiff.mul
     · exact contDiff_const
     · exact ψ_base.contDiff
-
   have hψ_compact : HasCompactSupport ψ := by
     apply HasCompactSupport.mul_left
     exact ψ_base.hasCompactSupport
-
   have hψ_integral_one : ∫ x, ψ x = 1 := by
     simp only [ψ, C]
     have : ∫ x, (1 / ∫ x, ψ_base x) * ψ_base x = 1 := by
       rw [integral_const_mul]
       field_simp [ne_of_gt h_integral_pos]
     convert this using 1
-
   have hψ_nonneg : ∀ x, 0 ≤ ψ x := by
     intro x
     simp only [ψ]
     apply mul_nonneg
     · exact div_nonneg zero_le_one (le_of_lt hC_pos)
     · exact ψ_base.nonneg' x
-
   have hψ_support : tsupport ψ ⊆ Metric.closedBall (0 : Fin n → ℝ) 1 := by
-    -- The support of ψ is the same as the support of ψ_base
-    -- since we're multiplying by a non-zero constant
-    -- ψ_base has support in the ball of radius ψ_base.rOut = 1
     have h_subset_base :
         tsupport ψ ⊆ tsupport (fun x : Fin n → ℝ => ψ_base x) := by
       -- Scaling by a constant does not enlarge the (topological) support.
@@ -223,15 +211,10 @@ lemma exists_mollifier_scale
           Metric.closedBall (0 : Fin n → ℝ) 1 := by
       simpa using ψ_base.tsupport_eq
     exact h_subset_base.trans <| by simp [h_tsupp_base]
-
-  -- For f₀ with compact support in L¹ ∩ L², we can apply approximation identity
-  -- The key is that for small η, the scaled mollifier ψ_η approximates the delta function
-  -- and convolution with it approximates the identity operator
   set ε := min ε₁ ε₂
   have hε_pos : 0 < ε := lt_min hε₁ hε₂
   have hε_le₁ : ε ≤ ε₁ := min_le_left _ _
   have hε_le₂ : ε ≤ ε₂ := min_le_right _ _
-
   have h_exists_eta : ∃ η_min > 0, ∀ η, 0 < η → η < η_min →
       ∃ φ : (Fin n → ℝ) → ℂ,
         (let ψ_η := fun x => η^(-(n : ℝ)) * ψ (fun i => x i / η)
@@ -249,36 +232,29 @@ lemma exists_mollifier_scale
         -- Apply the density theorem for continuous compactly supported functions
         have hε'_fourth : 0 < ε' / 4 := by linarith
         obtain ⟨g, hg_cont, hg_compact, hg_memLp, hg_close⟩ :=
-          continuous_compactSupport_dense_Lp 1 (by norm_num : (1 : ℝ≥0∞) ≠ ∞)
+          continuous_compactSupport_dense_Lp 1 (by norm_num : (1 : ℝ≥0∞) ≠ ⊤)
             f₀ hf₀_L1 hε'_fourth
         use g
         exact ⟨hg_cont, hg_compact, hg_close⟩
-
       obtain ⟨g, hg_cont, hg_compact, hg_approx⟩ := h_exists_cont
-
       -- For the continuous function g, find a smooth approximation
       -- Apply mollifier_compactSupport_Lp_approx to g
       have h_smooth_exists := mollifier_compactSupport_Lp_approx 1 le_rfl g hg_cont hg_compact
         (by linarith : 0 < ε' / 4)
       obtain ⟨φ_g, hφ_g_smooth, hφ_g_close, _⟩ := h_smooth_exists
-
       -- For the goal, we need to estimate the convolution
       -- The key insight is that for any fixed functions, we can choose δ small enough
       -- We appeal to the quantitative convergence result for mollifiers.
-
       have hψ_AI : IsApproximateIdentity ψ :=
         ⟨hψ_smooth, hψ_compact, by simpa using hψ_integral_one, hψ_nonneg, hψ_support⟩
-
       have hg_integrable : Integrable g volume :=
         hg_cont.integrable_of_hasCompactSupport hg_compact
       have hg_memLp : MemLp g 1 volume := (memLp_one_iff_integrable (μ := volume)).2 hg_integrable
       have h_one_le_one : (1 : ℝ≥0∞) ≤ (1 : ℝ≥0∞) := le_refl _
-      have h_one_ne_top : (1 : ℝ≥0∞) ≠ ∞ := by norm_num
-
+      have h_one_ne_top : (1 : ℝ≥0∞) ≠ ⊤ := by norm_num
       obtain ⟨δ₀, hδ₀_pos, hδ₀_bound⟩ :=
         (mollifier_converges_Lp g ψ 1 h_one_le_one h_one_ne_top hg_memLp hψ_AI)
           (ε' / 4) (by linarith)
-
       use min δ₀ 1
       constructor
       · exact lt_min hδ₀_pos (by norm_num)
@@ -292,7 +268,6 @@ lemma exists_mollifier_scale
           -- Apply the quantitative L¹ convergence of mollifiers for continuous data.
           have := hδ₀_bound η hη_pos hη_lt_δ₀
           simpa [scaledMollifier] using this
-
         -- Convolution is linear, so
         -- ‖g*ψ_η - f₀*ψ_η‖₁ = ‖(g - f₀)*ψ_η‖₁ ≤ ‖g - f₀‖₁ · ‖ψ_η‖₁
         -- by Young's inequality
@@ -309,12 +284,12 @@ lemma exists_mollifier_scale
               have hneg_pointwise :
                   (fun x => g x - f₀ x) = fun x => -(f₀ x - g x) := by
                 funext x
-                simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+                simp [sub_eq_add_neg]
               have hneg_ae :
                   (fun x => g x - f₀ x) =ᵐ[volume] fun x => -(f₀ x - g x) :=
                 Filter.Eventually.of_forall <| by
                   intro x
-                  simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+                  simp [sub_eq_add_neg]
               have hneg_eq :=
                 eLpNorm_congr_ae (μ := volume) (p := (1 : ℝ≥0∞)) hneg_ae
               have hneg_symm :=
@@ -327,7 +302,6 @@ lemma exists_mollifier_scale
               hg_integrable hf₀_integrable hψ_nonneg hψ_integral_one
           have h_conv_diff_le := h_bound η hη_pos hη_lt_one
           exact lt_of_le_of_lt h_conv_diff_le hg_minus_f0_lt
-
         -- Combine the three bounds using the auxiliary inequality.
         set ψη : (Fin n → ℝ) → ℝ := fun y => (η ^ n : ℝ)⁻¹ * ψ (fun i => y i / η)
         let ψηC : (Fin n → ℝ) → ℂ := fun y => (ψη y : ℝ)
@@ -378,7 +352,7 @@ lemma exists_mollifier_scale
             ψηC = fun y : Fin n → ℝ => ((↑η : ℂ) ^ n)⁻¹ * ↑(ψ fun i => y i / η) := by
           funext y
           simp [ψηC, ψη, Complex.ofReal_mul, Complex.ofReal_inv, Complex.ofReal_pow,
-            hη_pow_ne_zero, one_div, div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc]
+            div_eq_mul_inv]
         have hg_locInt : LocallyIntegrable g volume :=
           hg_integrable.locallyIntegrable
         have hf₀_integrable : Integrable f₀ volume := by
@@ -461,7 +435,6 @@ lemma exists_mollifier_scale
           simp [conv_g, conv_f₀, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
         simpa [conv_g, h_conv_f₀_integrand, h_decomp]
           using h_triangle
-
     have h_conv_L2 : ∀ ε' > 0, ∃ δ > 0, ∀ η : ℝ, 0 < η → η < δ →
         eLpNorm (fun x => f₀ x -
           ∫ y, f₀ (x - y) * (↑(η^(-(n : ℝ)) * ψ (fun i => y i / η)) : ℂ)) 2 volume
@@ -475,27 +448,22 @@ lemma exists_mollifier_scale
         -- Apply the density theorem for continuous compactly supported functions
         have hε'_fourth : 0 < ε' / 4 := by linarith
         obtain ⟨g, hg_cont, hg_compact, hg_memLp, hg_close⟩ :=
-          continuous_compactSupport_dense_Lp (2 : ℝ≥0∞) (by norm_num : (2 : ℝ≥0∞) ≠ ∞)
+          continuous_compactSupport_dense_Lp (2 : ℝ≥0∞) (by norm_num : (2 : ℝ≥0∞) ≠ ⊤)
             f₀ hf₀_L2 hε'_fourth
         use g
         exact ⟨hg_cont, hg_compact, hg_close⟩
-
       obtain ⟨g, hg_cont, hg_compact, hg_approx⟩ := h_exists_cont
-
       -- For the continuous function g, find a smooth approximation in L²
       have h_smooth_exists := mollifier_compactSupport_Lp_approx (2 : ℝ≥0∞)
         (by norm_num : (1 : ℝ≥0∞) ≤ 2) g hg_cont hg_compact (by linarith : 0 < ε' / 4)
       obtain ⟨φ_g, hφ_g_smooth, hφ_g_close, _⟩ := h_smooth_exists
-
       have hψ_AI : IsApproximateIdentity ψ :=
         ⟨hψ_smooth, hψ_compact, by simpa using hψ_integral_one, hψ_nonneg, hψ_support⟩
-
       -- Obtain quantitative convergence from the L² mollifier theorem
       have h_one_two : (1 : ℝ≥0∞) ≤ (2 : ℝ≥0∞) := by norm_num
-      have h_two_ne_top : (2 : ℝ≥0∞) ≠ ∞ := by norm_num
+      have h_two_ne_top : (2 : ℝ≥0∞) ≠ ⊤ := by norm_num
       obtain ⟨δ₀, hδ₀_pos, hδ₀_bound⟩ :=
         (mollifier_converges_Lp f₀ ψ 2 h_one_two h_two_ne_top hf₀_L2 hψ_AI) ε' hε'
-
       use min δ₀ 1
       constructor
       · exact lt_min hδ₀_pos (by norm_num)
@@ -505,10 +473,8 @@ lemma exists_mollifier_scale
         -- The integral appearing in `hδ₀_bound` matches the goal after unfolding
         -- the definition of `scaledMollifier`.
         simpa [scaledMollifier] using h_bound
-
     obtain ⟨δ₁, hδ₁_pos, h₁⟩ := h_conv_L1 ε hε_pos
     obtain ⟨δ₂, hδ₂_pos, h₂⟩ := h_conv_L2 ε hε_pos
-
     -- Take η_min to be the minimum of δ₁ and δ₂
     use min δ₁ δ₂
     constructor
@@ -530,7 +496,6 @@ lemma exists_mollifier_scale
         have hη_lt₂ : η < δ₂ := lt_of_lt_of_le hη_lt (min_le_right _ _)
         have := h₂ η hη_pos hη_lt₂
         convert this using 2
-
   -- Extract a specific η from the existence result
   obtain ⟨η_min, hη_min_pos, h_forall_eta⟩ := h_exists_eta
   -- Choose η = min(η_min/2, 1/2) to ensure η ≤ 1
@@ -550,11 +515,8 @@ lemma exists_mollifier_scale
     calc min (η_min / 2) (1 / 2)
         ≤ η_min / 2 := min_le_left _ _
       _ < η_min := half_lt_self hη_min_pos
-
   obtain ⟨φ, hφ_def, hφ_L1, hφ_L2⟩ := h_forall_eta η hη_pos hη_lt
-
   use η, hη_pos, hη_le_one, ψ
-
   constructor
   · exact hψ_smooth
   constructor
@@ -635,7 +597,7 @@ lemma cutoff_L1_bound
         simpa [one_mul] using this
       have h_indicator :
           Set.indicator tail (fun x => ‖f x‖ₑ) x = ‖f x‖ₑ := by
-        simp [tail, hx, ofReal_norm_eq_enorm]
+        simp [tail, hx]
       have h_le :
           ENNReal.ofReal ((1 - χ x) * ‖f x‖)
             ≤ ENNReal.ofReal ‖f x‖ :=
@@ -651,7 +613,7 @@ lemma cutoff_L1_bound
         intro hx_mem
         exact hx ((hx_mem : R ≤ ‖x‖))
       have h_zero : f x - f_cut x = 0 := h_diff_zero_inside (le_of_lt hx_lt)
-      simp [tail, hx_not_tail, h_zero, ofReal_norm_eq_enorm]
+      simp [tail, hx_not_tail, h_zero]
   have h_lintegral_le :
       ∫⁻ x, ‖f x - f_cut x‖ₑ ∂volume
         ≤ ∫⁻ x, Set.indicator tail (fun x => ‖f x‖ₑ) x ∂volume := by
@@ -752,7 +714,7 @@ lemma cutoff_L2_bound
         simpa [one_mul] using this
       have h_indicator :
           Set.indicator tail (fun x => ‖f x‖ₑ) x = ‖f x‖ₑ := by
-        simp [tail, hx, ofReal_norm_eq_enorm]
+        simp [tail, hx]
       have h_le :
           ENNReal.ofReal ((1 - χ x) * ‖f x‖)
             ≤ ENNReal.ofReal ‖f x‖ :=
@@ -768,7 +730,7 @@ lemma cutoff_L2_bound
         intro hx_mem
         exact hx ((hx_mem : R ≤ ‖x‖))
       have h_zero : f x - f_cut x = 0 := h_diff_zero_inside (le_of_lt hx_lt)
-      simp [tail, hx_not_tail, h_zero, ofReal_norm_eq_enorm]
+      simp [tail, hx_not_tail, h_zero]
   have h_pointwise_sq :
       ∀ x,
         ‖f x - f_cut x‖ₑ ^ (2 : ℝ)
@@ -779,8 +741,8 @@ lemma cutoff_L2_bound
         Set.indicator tail (fun x => ‖f x‖ₑ) x ^ (2 : ℝ)
           = Set.indicator tail (fun x => ‖f x‖ₑ ^ (2 : ℝ)) x := by
       by_cases hx : R ≤ ‖x‖
-      · simp [tail, hx, ofReal_norm_eq_enorm]
-      · simp [tail, hx, ofReal_norm_eq_enorm]
+      · simp [tail, hx]
+      · simp [tail, hx]
     simpa [h_indicator_sq]
       using hpow
   have h_lintegral_le :
@@ -933,11 +895,11 @@ lemma cutoff_then_convolve_Lp
     intro x
     have hnorm : ‖f_cut x‖ = |χ x| * ‖f x‖ := by
       have h_mul : f_cut x = (χ x : ℂ) * f x := by
-        simp [hf_cut_def, χℂ, mul_comm]
+        simp [hf_cut_def, mul_comm]
       have hnorm' : ‖(χ x : ℂ) * f x‖ = ‖(χ x : ℂ)‖ * ‖f x‖ := norm_mul _ _
       have habs : ‖(χ x : ℂ)‖ = |χ x| := by
         simp
-      simp [h_mul, habs]
+      simp [h_mul]
     have habs_le : |χ x| ≤ 1 := by
       have hnonneg : 0 ≤ χ x := hχ_nonneg x
       have hle_one : χ x ≤ 1 := hχ_le_one x
@@ -976,7 +938,7 @@ lemma cutoff_then_convolve_Lp
     exact Filter.Eventually.of_forall h_cut_sq_le_abs
   have hf_cut_L2 : MemLp f_cut 2 volume := by
     have hp0 : (2 : ℝ≥0∞) ≠ 0 := by norm_num
-    have hp_top : (2 : ℝ≥0∞) ≠ ∞ := by simp
+    have hp_top : (2 : ℝ≥0∞) ≠ ⊤ := by simp
     have hf_cut_sq_memLp :
         MemLp (fun x => ‖f_cut x‖ ^ ((2 : ℝ≥0∞).toReal))
           ((2 : ℝ≥0∞) / (2 : ℝ≥0∞)) volume := by
@@ -1100,7 +1062,7 @@ lemma cutoff_then_convolve_Lp
           calc
             ((η⁻¹ : ℝ) * ‖y‖) * η
                 = ‖y‖ * ((η⁻¹ : ℝ) * η) := by
-                  simp [mul_comm, mul_left_comm, mul_assoc]
+                  simp [mul_comm, mul_assoc]
             _ = ‖y‖ * (1 : ℝ) := by
                   simp [hη_ne_zero, mul_comm]
             _ = ‖y‖ := by simp
@@ -1171,7 +1133,6 @@ lemma cutoff_then_convolve_Lp
   have hφ₀_cont : Continuous φ₀ := by
     simpa [h_conv_eq] using h_conv_cont
   have hφ₀_meas : AEStronglyMeasurable φ₀ volume := hφ₀_cont.aestronglyMeasurable
-
   -- φ₀ is smooth because convolution with a smooth compactly supported kernel
   -- preserves smoothness.
   have hψη_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) ψ_η := by
@@ -1205,7 +1166,7 @@ lemma cutoff_then_convolve_Lp
         (fun y : (Fin n → ℝ) =>
             Complex.ofRealCLM (ψ_η y)) = ψ_ηℂ := by
       funext y
-      simp [ψ_ηℂ, Function.comp]
+      simp [ψ_ηℂ]
     simpa [h_eq] using h_comp
   have hφ₀_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) φ₀ := by
     have h_contDiff :=
@@ -1258,7 +1219,7 @@ lemma cutoff_then_convolve_Lp
           = (fun x => f x - f_cut x)
               + fun x => f_cut x - φ x := by
       funext x
-      simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+      simp [sub_eq_add_neg, add_left_comm, add_assoc]
     simpa [h_fun_eq]
       using
         (eLpNorm_add_le (μ := volume) (p := (1 : ℝ≥0∞))
@@ -1272,7 +1233,7 @@ lemma cutoff_then_convolve_Lp
           = (fun x => f x - f_cut x)
               + fun x => f_cut x - φ x := by
       funext x
-      simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+      simp [sub_eq_add_neg, add_left_comm, add_assoc]
     simpa [h_fun_eq]
       using
         (eLpNorm_add_le (μ := volume) (p := (2 : ℝ≥0∞))
@@ -1337,7 +1298,6 @@ theorem schwartz_dense_L1_L2_simultaneous
   let ε_tail₁ : ℝ := ε / 4
   let ε_cut₂ : ℝ := ε / 4
   let ε_tail₂ : ℝ := ε / 4
-
   have hε_cut₁_pos : 0 < ε_cut₁ := by
     have hden : (0 : ℝ) < 4 := by norm_num
     simpa [ε_cut₁] using div_pos hε hden
@@ -1350,7 +1310,6 @@ theorem schwartz_dense_L1_L2_simultaneous
   have hε_tail₂_pos : 0 < ε_tail₂ := by
     have hden : (0 : ℝ) < 4 := by norm_num
     simpa [ε_tail₂] using div_pos hε hden
-
   have h_budget_L1 : ε_cut₁ + ε_tail₁ < ε := by
     have h_half : ε / 2 < ε := half_lt_self hε
     have h_sum₀ : ε / 4 + ε / 4 = ε / 2 := by ring
@@ -1363,23 +1322,19 @@ theorem schwartz_dense_L1_L2_simultaneous
     have h_sum : ε_cut₂ + ε_tail₂ = ε / 2 := by
       simpa [ε_cut₂, ε_tail₂] using h_sum₀
     simpa [h_sum] using h_half
-
   -- Tail control in L¹.
   obtain ⟨R₁, hR₁_pos, hR₁_tail⟩ :=
     integrable_tail_small (f := f) hf_L1 (ε := ε_tail₁) hε_tail₁_pos
-
   -- Tail control in L² is obtained by applying the tail lemma to the function
   -- `‖f‖²`, and then converting the bound to an `L²`-norm bound.
   have hp0 : (2 : ℝ≥0∞) ≠ 0 := by norm_num
-  have hp_top : (2 : ℝ≥0∞) ≠ ∞ := by simp
+  have hp_top : (2 : ℝ≥0∞) ≠ ⊤ := by simp
   have hf_sq_integrable : Integrable (fun x => ‖f x‖ ^ (2 : ℝ)) volume := by
     simpa [one_div] using
       (hf_L2.integrable_norm_rpow (μ := volume) hp0 hp_top)
-
   -- The function `‖f‖²` is non-negative, so we can apply the tail lemma to it.
   have hε_tail₂_sq_pos : 0 < ε_tail₂ ^ (2 : ℝ) :=
     Real.rpow_pos_of_pos hε_tail₂_pos _
-
   obtain ⟨R₂, hR₂_pos, hR₂_tail_sq⟩ :=
     integrable_tail_small
       (f := fun x => Complex.ofReal (‖f x‖ ^ (2 : ℝ)))
@@ -1390,14 +1345,12 @@ theorem schwartz_dense_L1_L2_simultaneous
           simpa using hf_sq_integrable.ofReal (μ := volume) (𝕜 := ℂ)
         simpa using (memLp_one_iff_integrable).2 h_int_complex)
       (ε := ε_tail₂ ^ (2 : ℝ)) hε_tail₂_sq_pos
-
   -- Combine the L¹ and L² tail bounds by taking the larger radius.
   set R : ℝ := max R₁ R₂ with hR_def
   have hR_pos : 0 < R := by
     have hR₁_le : R₁ ≤ R := by
-      simp [R, hR_def]
+      simp [R]
     exact lt_of_lt_of_le hR₁_pos hR₁_le
-
   -- Monotonicity lets us transfer the tail bounds to the radius `R`.
   have h_tail_L1 :
       ∫ x, ‖f x‖ ∂(volume.restrict {x : (Fin n → ℝ) | R ≤ ‖x‖}) < ε_tail₁ := by
@@ -1406,11 +1359,10 @@ theorem schwartz_dense_L1_L2_simultaneous
     have h_int_tail :=
       (h_int.norm.restrict (s := {x : (Fin n → ℝ) | R₁ ≤ ‖x‖}))
     have hR_le : R₁ ≤ R := by
-      simp [R, hR_def]
+      simp [R]
     simpa [R, hR_def] using
       tail_bound_mono (F := fun x => ‖f x‖)
         (R₁ := R₁) (R₂ := R) hR_le h_nonneg h_int_tail hR₁_tail
-
   have h_tail_L2_sq :
       ∫ x, ‖f x‖ ^ (2 : ℝ) ∂(volume.restrict {x : (Fin n → ℝ) | R ≤ ‖x‖})
         < ε_tail₂ ^ (2 : ℝ) := by
@@ -1419,7 +1371,7 @@ theorem schwartz_dense_L1_L2_simultaneous
     have h_int_tail :=
       (hf_sq_integrable.restrict (s := {x : (Fin n → ℝ) | R₂ ≤ ‖x‖}))
     have hR₂_le : R₂ ≤ R := by
-      simp [R, hR_def]
+      simp [R]
     have hR₂_tail_sq_real :
         ∫ x, ‖f x‖ ^ (2 : ℝ)
             ∂(volume.restrict {x : (Fin n → ℝ) | R₂ ≤ ‖x‖})
@@ -1430,12 +1382,11 @@ theorem schwartz_dense_L1_L2_simultaneous
           (fun x => ‖Complex.ofReal (‖f x‖ ^ (2 : ℝ))‖)
             = fun x => ‖f x‖ ^ (2 : ℝ) := by
         funext x
-        simp [Complex.norm_real, Real.norm_eq_abs, h_nonneg_val x]
+        simp [Complex.norm_real]
       simpa [h_abs_eq] using hR₂_tail_sq
     simpa [R, hR_def] using
       tail_bound_mono (F := fun x => ‖f x‖ ^ (2 : ℝ))
         (R₁ := R₂) (R₂ := R) hR₂_le h_nonneg h_int_tail hR₂_tail_sq_real
-
   -- Convert the integral bound on `‖f‖²` into an `L²` bound.
   have h_tail_L2 :
       eLpNorm (fun x => f x) 2
@@ -1469,7 +1420,6 @@ theorem schwartz_dense_L1_L2_simultaneous
         ENNReal.ofReal (I ^ (1 / 2 : ℝ)) < ENNReal.ofReal ε_tail₂ :=
       (ENNReal.ofReal_lt_ofReal_iff hε_tail₂_pos).2 h_pow_lt
     simpa [h_eq, I, hI_def] using h_ofReal_lt
-
   obtain ⟨φ, hφ_support, hφ_L1, hφ_L2⟩ :=
     cutoff_then_convolve_Lp (n := n) f hf_L1 hf_L2 R hR_pos
       (ε := ε) (ε_cut₁ := ε_cut₁) (ε_cut₂ := ε_cut₂)
@@ -1482,11 +1432,7 @@ theorem schwartz_dense_L1_L2_simultaneous
 **Variant for ℝ (n=1 case) with simultaneous L¹ and L² control.**
 
 This is the specific instance needed for the Plancherel theorem on ℝ.
-
-Given f ∈ L¹(ℝ) ∩ L²(ℝ), we can approximate it simultaneously in both norms
-by a smooth compactly supported function.
 -/
-
 lemma smooth_cutoff_compactSupport_Lp_real
     (φ : ℝ → ℂ)
     (hφ_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) φ)
@@ -1541,14 +1487,12 @@ lemma smooth_cutoff_compactSupport_Lp_real
     hφ_smooth.comp (E.toLinearIsometry.contDiff)
   have hφF_memLp : MemLp φF (2 : ℝ≥0∞) volume :=
     hφ_memLp.comp_measurePreserving h_pres_forward
-
   obtain ⟨ψ, hψ_smooth, hψ_support, hψ_memLp, hψ_close⟩ :=
     smooth_cutoff_compactSupport_Lp (n := 1) (p := (2 : ℝ≥0∞))
       (hp_one := by norm_num)
       (hp_ne_top := by norm_num)
       φF hφF_smooth hφF_memLp (R := R) hR_pos
       (ε := ε) hε
-
   let g : ℝ → ℂ := fun t => ψ (E.symm t)
   have hg_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) g :=
     hψ_smooth.comp (E.symm.toLinearIsometry.contDiff)
@@ -1556,7 +1500,6 @@ lemma smooth_cutoff_compactSupport_Lp_real
     hψ_support.comp_homeomorph (E.symm.toHomeomorph)
   have hg_memLp : MemLp g (2 : ℝ≥0∞) volume :=
     hψ_memLp.comp_measurePreserving h_pres_symm
-
   have hφψ_meas :
       AEStronglyMeasurable (fun x : (Fin 1 → ℝ) => φF x - ψ x) volume :=
     (hφF_smooth.continuous.aestronglyMeasurable.sub
@@ -1583,7 +1526,6 @@ lemma smooth_cutoff_compactSupport_Lp_real
         eLpNorm (fun t => φ t - g t) (2 : ℝ≥0∞) volume < ENNReal.ofReal ε := by
       simpa [Pi.sub_def, sub_eq_add_neg] using (h_eq'.symm ▸ h)
     exact hφg_close'
-
   refine ⟨g, hg_smooth, hg_support, hg_memLp, ?_⟩
   simpa [Pi.sub_def, sub_eq_add_neg] using hφg_close
 
@@ -1627,27 +1569,20 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
         have hx_norm : ‖x‖ = ‖x 0‖ := by
           simpa [hx_norm''] using hx_norm'.symm
         simp [hx_norm.symm] }
-
   -- Transport φ to `(Fin 1 → ℝ)`.
   let φF : (Fin 1 → ℝ) → ℂ := fun x => φ (E x)
-
   have hφF_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) φF :=
     hφ_smooth.comp (E.toLinearIsometry.contDiff)
-
   have h_pres_forward :
       MeasurePreserving (fun x : (Fin 1 → ℝ) => E x) := by
     simpa [E] using (volume_preserving_piUnique fun _ : Fin 1 => ℝ)
-
   have h_pres_symm : MeasurePreserving (fun t : ℝ => E.symm t) := by
     have h := (volume_preserving_piUnique (fun _ : Fin 1 => ℝ)).symm
     simpa [E] using h
-
   have hφF_memLp₁ : MemLp φF 1 volume :=
     hφ_memLp₁.comp_measurePreserving h_pres_forward
-
   have hφF_memLp₂ : MemLp φF 2 volume :=
     hφ_memLp₂.comp_measurePreserving h_pres_forward
-
   -- Reduce to constructing the approximation on `(Fin 1 → ℝ)`.
   suffices
       ∃ ψ : (Fin 1 → ℝ) → ℂ,
@@ -1664,17 +1599,14 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
       hψ_support.comp_homeomorph (E.symm.toHomeomorph)
     have hg_memLp : MemLp g 2 volume :=
       hψ_memLp.comp_measurePreserving h_pres_symm
-
     -- Compare L¹ and L² errors via measure preservation.
     have hφψ_meas₁ :
         AEStronglyMeasurable (fun x : (Fin 1 → ℝ) => φF x - ψ x) volume :=
       (hφF_smooth.continuous.aestronglyMeasurable.sub
         hψ_smooth.continuous.aestronglyMeasurable)
-
     have hφψ_meas₂ :
         AEStronglyMeasurable (fun x : (Fin 1 → ℝ) => φF x - ψ x) volume :=
       hφψ_meas₁
-
     have hφg_L1_eq :
         eLpNorm (fun t : ℝ => φ t - g t) (1 : ℝ≥0∞) volume
           = eLpNorm (fun x : (Fin 1 → ℝ) => φF x - ψ x)
@@ -1687,7 +1619,6 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
             hφψ_meas₁ h_pres_symm
       simpa [Function.comp, φF, g, Pi.sub_def, sub_eq_add_neg]
         using h_eq
-
     have hφg_L2_eq :
         eLpNorm (fun t : ℝ => φ t - g t) (2 : ℝ≥0∞) volume
           = eLpNorm (fun x : (Fin 1 → ℝ) => φF x - ψ x)
@@ -1700,13 +1631,11 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
             hφψ_meas₂ h_pres_symm
       simpa [Function.comp, φF, g, Pi.sub_def, sub_eq_add_neg]
         using h_eq
-
     refine ⟨g, hg_smooth, hg_support, hg_memLp, ?_, ?_⟩
     · have := hψ_L1
       simpa [hφg_L1_eq] using this
     · have := hψ_L2
       simpa [hφg_L2_eq] using this
-
   -- Split the error budget evenly for the tail bounds.
   let ε_tail : ℝ := ε / 2
   have hε_tail_pos : 0 < ε_tail :=
@@ -1719,21 +1648,18 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
         have h_half : ε / 2 < ε := half_lt_self hε
         simpa [ε_tail] using h_half
       exact this)
-
   -- Tail control in L¹ for `φF`.
   obtain ⟨R₁, hR₁_pos, hR₁_tail⟩ :=
     integrable_tail_small (f := φF) hφF_memLp₁ (ε := ε_tail) hε_tail_pos
-
   -- Tail control in L² comes from the squared norm.
   have hp0 : (2 : ℝ≥0∞) ≠ 0 := by norm_num
-  have hp_top : (2 : ℝ≥0∞) ≠ ∞ := by simp
+  have hp_top : (2 : ℝ≥0∞) ≠ ⊤ := by simp
   have hφF_sq_integrable : Integrable (fun x => ‖φF x‖ ^ (2 : ℝ)) volume := by
     simpa [one_div]
       using
         (hφF_memLp₂.integrable_norm_rpow (μ := volume) hp0 hp_top)
   have hε_tail_sq_pos : 0 < ε_tail ^ (2 : ℝ) :=
     Real.rpow_pos_of_pos hε_tail_pos _
-
   obtain ⟨R₂, hR₂_pos, hR₂_tail_sq⟩ :=
     integrable_tail_small
       (f := fun x : (Fin 1 → ℝ) => Complex.ofReal (‖φF x‖ ^ (2 : ℝ)))
@@ -1744,22 +1670,20 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
           simpa using hφF_sq_integrable.ofReal (μ := volume) (𝕜 := ℂ)
         simpa using (memLp_one_iff_integrable (μ := volume)).2 h_int_complex)
       (ε := ε_tail ^ (2 : ℝ)) hε_tail_sq_pos
-
   -- Use a radius dominating the prescribed `R` and both tail bounds.
   set Rtail : ℝ := max R₁ R₂ with hRtail_def
   set Rcut : ℝ := max R Rtail with hRcut_def
   have hRcut_pos : 0 < Rcut := by
-    have hR_le : R ≤ Rcut := by simp [Rcut, hRcut_def]
+    have hR_le : R ≤ Rcut := by simp [Rcut]
     exact lt_of_lt_of_le hR_pos hR_le
   have hR₁_le_Rcut : R₁ ≤ Rcut := by
-    have hR₁_le_Rtail : R₁ ≤ Rtail := by simp [Rtail, hRtail_def]
-    have hRtail_le_Rcut : Rtail ≤ Rcut := by simp [Rcut, hRcut_def]
+    have hR₁_le_Rtail : R₁ ≤ Rtail := by simp [Rtail]
+    have hRtail_le_Rcut : Rtail ≤ Rcut := by simp [Rcut]
     exact le_trans hR₁_le_Rtail hRtail_le_Rcut
   have hR₂_le_Rcut : R₂ ≤ Rcut := by
-    have hR₂_le_Rtail : R₂ ≤ Rtail := by simp [Rtail, hRtail_def]
-    have hRtail_le_Rcut : Rtail ≤ Rcut := by simp [Rcut, hRcut_def]
+    have hR₂_le_Rtail : R₂ ≤ Rtail := by simp [Rtail]
+    have hRtail_le_Rcut : Rtail ≤ Rcut := by simp [Rcut]
     exact le_trans hR₂_le_Rtail hRtail_le_Rcut
-
   -- Transfer tail bounds to the common radius `Rcut`.
   have h_tail_L1 :
       ∫ x, ‖φF x‖ ∂(volume.restrict {x : (Fin 1 → ℝ) | Rcut ≤ ‖x‖})
@@ -1773,7 +1697,6 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
       using
         tail_bound_mono (F := fun x : (Fin 1 → ℝ) => ‖φF x‖)
           (R₁ := R₁) (R₂ := Rcut) hR₁_le h_nonneg h_int_tail hR₁_tail
-
   have h_tail_L2_sq :
       ∫ x, ‖φF x‖ ^ (2 : ℝ)
           ∂(volume.restrict {x : (Fin 1 → ℝ) | Rcut ≤ ‖x‖})
@@ -1794,13 +1717,12 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
           (fun x => ‖Complex.ofReal (‖φF x‖ ^ (2 : ℝ))‖)
             = fun x => ‖φF x‖ ^ (2 : ℝ) := by
         funext x
-        simp [Complex.norm_real, Real.norm_eq_abs, h_nonneg_val x]
+        simp [Complex.norm_real]
       simpa [h_abs_eq] using hR₂_tail_sq
     simpa [Rcut, hRcut_def]
       using
         tail_bound_mono (F := fun x => ‖φF x‖ ^ (2 : ℝ))
           (R₁ := R₂) (R₂ := Rcut) hR₂_le h_nonneg h_int_tail hR₂_tail_sq_real
-
   -- Convert the integral bound into an L² tail bound.
   have h_tail_L2 :
       eLpNorm (fun x => φF x) 2
@@ -1836,27 +1758,23 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
         ENNReal.ofReal (I ^ (1 / 2 : ℝ)) < ENNReal.ofReal ε_tail :=
       (ENNReal.ofReal_lt_ofReal_iff hε_tail_pos).2 h_pow_lt
     simpa [h_eq, I, hI_def] using h_ofReal_lt
-
   -- Construct the smooth cutoff.
   have hR_lt : Rcut < Rcut + 1 := by linarith
   obtain ⟨χ, hχ_smooth, hχ_one, hχ_bounds, hχ_compact, hχ_support⟩ :=
     exists_smooth_cutoff (n := 1) Rcut (Rcut + 1) hRcut_pos hR_lt
   have hχ_nonneg : ∀ x, 0 ≤ χ x := fun x => (hχ_bounds x).1
   have hχ_le_one : ∀ x, χ x ≤ 1 := fun x => (hχ_bounds x).2
-
   -- Define the truncated function.
   set ψ : (Fin 1 → ℝ) → ℂ := fun x => (χ x : ℝ) • φF x with hψ_def
   have hψ_mul : ψ = fun x => (χ x : ℂ) * φF x := by
     funext x
     simp [ψ]
-
   -- Inside the radius `Rcut`, the cutoff does not change the function.
   have h_diff_zero_inside :
       ∀ {x : (Fin 1 → ℝ)}, ‖x‖ ≤ Rcut → φF x - ψ x = 0 := by
     intro x hx
     have hχx : χ x = 1 := hχ_one x hx
     simp [hψ_def, hχx]
-
   -- Bounds on the L¹/L² errors produced by the cutoff.
   have h_cutoff_L1_le :
       eLpNorm (fun x => φF x - ψ x) 1 volume
@@ -1866,7 +1784,6 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
         (f := φF) (f_cut := fun x => (χ x : ℂ) * φF x)
         hφF_memLp₁ χ Rcut ε_tail
         hχ_nonneg hχ_le_one rfl h_diff_zero_inside h_tail_L1 hε_tail_pos
-
   have h_cutoff_L2_le :
       eLpNorm (fun x => φF x - ψ x) 2 volume
         ≤ ENNReal.ofReal ε_tail := by
@@ -1875,19 +1792,15 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
         (f := φF) (f_cut := fun x => (χ x : ℂ) * φF x)
         χ Rcut ε_tail
         hχ_nonneg hχ_le_one rfl h_diff_zero_inside h_tail_L2
-
   have hψ_L1 :
       eLpNorm (fun x => φF x - ψ x) 1 volume < ENNReal.ofReal ε :=
     lt_of_le_of_lt h_cutoff_L1_le hε_tail_lt
-
   have hψ_L2 :
       eLpNorm (fun x => φF x - ψ x) 2 volume < ENNReal.ofReal ε :=
     lt_of_le_of_lt h_cutoff_L2_le hε_tail_lt
-
   -- Regularity of the truncated function.
   have hψ_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) ψ :=
     (hχ_smooth.smul hφF_smooth)
-
   -- Compact support.
   have hψ_support : HasCompactSupport ψ := by
     refine HasCompactSupport.intro
@@ -1900,12 +1813,10 @@ lemma smooth_cutoff_compactSupport_L1_L2_real
       exact hx_not_ball (hχ_support hx_mem)
     have hx_zero : χ x = 0 := image_eq_zero_of_notMem_tsupport hx_not_tsupport
     simp [ψ, hx_zero]
-
   -- `ψ` lies in L² because it is continuous with compact support.
   have hψ_memLp : MemLp ψ 2 volume := by
     have hψ_cont : Continuous ψ := hψ_smooth.continuous
     exact hψ_cont.memLp_of_hasCompactSupport hψ_support
-
   exact ⟨ψ, hψ_smooth, hψ_support, hψ_memLp, hψ_L1, hψ_L2⟩
 
 theorem smooth_compactSupport_dense_L1_L2_real
@@ -1949,7 +1860,6 @@ theorem smooth_compactSupport_dense_L1_L2_real
         simp [hx_norm.symm] }
   -- Transport the original function to `(Fin 1 → ℝ)`.
   let F : (Fin 1 → ℝ) → ℂ := fun x => f (E x)
-
   -- `f` belongs to both L¹ and L², hence so does `F` by measure preservation.
   have h_pres : MeasurePreserving (fun t : ℝ => E.symm t) := by
     have h := (volume_preserving_piUnique (fun _ : Fin 1 => ℝ)).symm
@@ -1964,12 +1874,10 @@ theorem smooth_compactSupport_dense_L1_L2_real
       (by
         simpa [E] using
           (volume_preserving_piUnique (fun _ : Fin 1 => ℝ)))
-
   -- Use the simultaneous Schwartz approximation on `(Fin 1 → ℝ)` with a small error budget.
   obtain ⟨φ, hφ_L1, hφ_L2⟩ :=
     schwartz_dense_L1_L2_simultaneous (n := 1) F hF_L1 hF_L2
       (ε := ε / 4) (by simpa using div_pos hε (by norm_num : (0 : ℝ) < 4))
-
   -- Turn the Schwartz approximation `φ` into a function on ℝ.
   let φℝ : ℝ → ℂ := fun t => φ (E.symm t)
   have hφℝ_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) φℝ :=
@@ -1978,19 +1886,16 @@ theorem smooth_compactSupport_dense_L1_L2_real
     (φ.memLp (p := (1 : ℝ≥0∞)) (μ := volume)).comp_measurePreserving h_pres
   have hφℝ_memLp₂ : MemLp φℝ 2 volume :=
     (φ.memLp (p := (2 : ℝ≥0∞)) (μ := volume)).comp_measurePreserving h_pres
-
   have hFφ_meas :
       AEStronglyMeasurable (fun x : (Fin 1 → ℝ) => F x - φ x) volume :=
     (hF_L2.aestronglyMeasurable.sub
       (φ.smooth (⊤ : ℕ∞)).continuous.aestronglyMeasurable)
-
   -- Smoothly cut off `φℝ` to obtain a compactly supported function while controlling the error.
   obtain ⟨g, hg_smooth, hg_support, hg_memLp, hg_close_L1, hg_close_L2⟩ :=
     smooth_cutoff_compactSupport_L1_L2_real φℝ hφℝ_smooth hφℝ_memLp₁ hφℝ_memLp₂
       (R := 1) (hR_pos := by norm_num)
       (ε := ε / 4)
       (by simpa using div_pos hε (by norm_num : (0 : ℝ) < 4))
-
   -- Control the L¹ and L² errors simultaneously via triangle inequalities.
   have hφ_L1' :
       eLpNorm (fun x : (Fin 1 → ℝ) => F x - φ x) 1 volume < ENNReal.ofReal (ε / 4) := by
@@ -1998,7 +1903,6 @@ theorem smooth_compactSupport_dense_L1_L2_real
   have hφ_L2' :
       eLpNorm (fun x : (Fin 1 → ℝ) => F x - φ x) 2 volume < ENNReal.ofReal (ε / 4) := by
     simpa [Pi.sub_def, sub_eq_add_neg] using hφ_L2
-
   have hfφ_L1 : eLpNorm (fun t => f t - φℝ t) 1 volume < ENNReal.ofReal (ε / 4) := by
     have h_eq :=
         eLpNorm_comp_measurePreserving (μ := volume) (ν := volume)
@@ -2012,7 +1916,6 @@ theorem smooth_compactSupport_dense_L1_L2_real
       simpa [Function.comp, F, φℝ, Pi.sub_def, sub_eq_add_neg]
         using h_eq
     simpa [h_eq'] using hφ_L1'
-
   have hfφ_L2 : eLpNorm (fun t => f t - φℝ t) 2 volume < ENNReal.ofReal (ε / 4) := by
     have h_eq :=
         eLpNorm_comp_measurePreserving (μ := volume) (ν := volume)
@@ -2026,12 +1929,10 @@ theorem smooth_compactSupport_dense_L1_L2_real
       simpa [Function.comp, F, φℝ, Pi.sub_def, sub_eq_add_neg]
         using h_eq
     simpa [h_eq'] using hφ_L2'
-
   have hφg_L1 : eLpNorm (fun t => φℝ t - g t) 1 volume < ENNReal.ofReal (ε / 4) :=
     hg_close_L1
   have hφg_L2 : eLpNorm (fun t => φℝ t - g t) 2 volume < ENNReal.ofReal (ε / 4) :=
     hg_close_L2
-
   have hf_meas : AEStronglyMeasurable f volume := hf_L2.aestronglyMeasurable
   have hφℝ_meas : AEStronglyMeasurable φℝ volume :=
     (hφℝ_smooth.continuous).aestronglyMeasurable
@@ -2043,14 +1944,12 @@ theorem smooth_compactSupport_dense_L1_L2_real
   have hφg_meas :
       AEStronglyMeasurable (fun t => φℝ t - g t) volume :=
     hφℝ_meas.sub hg_meas
-
   have hfg_fun_eq :
       (fun t => f t - g t)
         = (fun t => f t - φℝ t) + fun t => φℝ t - g t := by
     funext t
     have : f t - g t = (f t - φℝ t) + (φℝ t - g t) := by ring
     simp [Pi.add_apply]
-
   have hfg_triangle :
       eLpNorm (fun t => f t - g t) 2 volume
         ≤ eLpNorm (fun t => f t - φℝ t) 2 volume
@@ -2063,7 +1962,6 @@ theorem smooth_compactSupport_dense_L1_L2_real
           (by
             have : (1 : ℝ) ≤ 2 := by norm_num
             exact_mod_cast this))
-
   have hfg_triangle_L1 :
       eLpNorm (fun t => f t - g t) 1 volume
         ≤ eLpNorm (fun t => f t - φℝ t) 1 volume
@@ -2076,33 +1974,27 @@ theorem smooth_compactSupport_dense_L1_L2_real
           (by
             have : (1 : ℝ) ≤ 1 := le_rfl
             exact_mod_cast this))
-
   have h_sum_lt :
       eLpNorm (fun t => f t - φℝ t) 2 volume
             + eLpNorm (fun t => φℝ t - g t) 2 volume
         < ENNReal.ofReal (ε / 4) + ENNReal.ofReal (ε / 4) :=
     ENNReal.add_lt_add hfφ_L2 hφg_L2
-
   have h_sum_lt_L1 :
       eLpNorm (fun t => f t - φℝ t) 1 volume
             + eLpNorm (fun t => φℝ t - g t) 1 volume
         < ENNReal.ofReal (ε / 4) + ENNReal.ofReal (ε / 4) :=
     ENNReal.add_lt_add hfφ_L1 hφg_L1
-
   have hfg_L2_half :
       eLpNorm (fun t => f t - g t) 2 volume
         < ENNReal.ofReal (ε / 4) + ENNReal.ofReal (ε / 4) :=
     lt_of_le_of_lt hfg_triangle h_sum_lt
-
   have hfg_L1_half :
       eLpNorm (fun t => f t - g t) 1 volume
         < ENNReal.ofReal (ε / 4) + ENNReal.ofReal (ε / 4) :=
     lt_of_le_of_lt hfg_triangle_L1 h_sum_lt_L1
-
   have hε_quarter_pos : 0 < ε / 4 := by
     have : (0 : ℝ) < 4 := by norm_num
     exact div_pos hε this
-
   have h_add_eq :
       ENNReal.ofReal (ε / 4) + ENNReal.ofReal (ε / 4)
         = ENNReal.ofReal (ε / 2) := by
@@ -2110,29 +2002,23 @@ theorem smooth_compactSupport_dense_L1_L2_real
     have h_sum : ε / 4 + ε / 4 = ε / 2 := by ring
     simpa [h_sum]
       using (ENNReal.ofReal_add hnonneg hnonneg).symm
-
   have hfg_L2_half' :
       eLpNorm (fun t => f t - g t) 2 volume
         < ENNReal.ofReal (ε / 2) := by
     simpa [h_add_eq] using hfg_L2_half
-
   have hfg_L1_half' :
       eLpNorm (fun t => f t - g t) 1 volume
         < ENNReal.ofReal (ε / 2) := by
     simpa [h_add_eq] using hfg_L1_half
-
   have hε_half_pos : 0 < ε / 2 := half_pos hε
   have hε_half_lt : ENNReal.ofReal (ε / 2) < ENNReal.ofReal ε :=
     (ENNReal.ofReal_lt_ofReal_iff hε).2 (half_lt_self hε)
-
   have hfg_L2 :
       eLpNorm (fun t => f t - g t) 2 volume < ENNReal.ofReal ε :=
     lt_trans hfg_L2_half' hε_half_lt
-
   have hfg_L1 :
       eLpNorm (fun t => f t - g t) 1 volume < ENNReal.ofReal ε :=
     lt_trans hfg_L1_half' hε_half_lt
-
   refine ⟨g, hg_smooth, hg_support, hfg_L1, hfg_L2⟩
 
 end Newton

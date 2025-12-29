@@ -18,48 +18,42 @@ def pauliZ : Matrix (Fin 2) (Fin 2) ℂ :=
 
 @[simp]
 theorem pauliX_trace : trace pauliX = 0 := by
-  simp only [pauliX, trace, Fin.sum_univ_two, diag, of_apply,
-             cons_val_zero, cons_val_one, head_cons]
+  simp only [pauliX, trace, Fin.sum_univ_two, diag, cons_val_zero, cons_val_one]
   ring
 
 @[simp]
 theorem pauliY_trace : trace pauliY = 0 := by
-  simp only [pauliY, trace, Fin.sum_univ_two, diag, of_apply,
-             cons_val_zero, cons_val_one, head_cons]
+  simp only [pauliY, trace, Fin.sum_univ_two, diag, cons_val_zero, cons_val_one]
   ring
 
 @[simp]
 theorem pauliZ_trace : trace pauliZ = 0 := by
-  simp only [pauliZ, trace, Fin.sum_univ_two, diag, of_apply,
-             cons_val_zero, cons_val_one, head_cons]
+  simp only [pauliZ, trace, Fin.sum_univ_two, diag, cons_val_zero, cons_val_one]
   ring
 
 /-- Pauli matrix σ₁ is Hermitian -/
 theorem pauliX_hermitian : conjTranspose pauliX = pauliX := by
   ext i j
   fin_cases i <;> fin_cases j <;>
-    simp only [pauliX, conjTranspose, of_apply, cons_val_zero, cons_val_one,
-               head_cons, transpose_apply, map_apply]
-  all_goals simp [Complex.star_def]
+    simp only [pauliX, conjTranspose, transpose_apply, map_apply]
+  all_goals simp
 
 /-- Pauli matrix σ₃ is Hermitian -/
 theorem pauliZ_hermitian : conjTranspose pauliZ = pauliZ := by
   ext i j
   fin_cases i <;> fin_cases j <;>
-    simp only [pauliZ, conjTranspose, of_apply, cons_val_zero, cons_val_one,
-               head_cons, transpose_apply, map_apply]
-  all_goals simp [Complex.star_def]
+    simp only [pauliZ, conjTranspose, transpose_apply, map_apply]
+  all_goals simp
 
 /-- Pauli matrix σ₂ is Hermitian -/
 theorem pauliY_hermitian : conjTranspose pauliY = pauliY := by
   ext i j
   fin_cases i <;> fin_cases j <;>
-    simp only [pauliY, conjTranspose, of_apply, cons_val_zero, cons_val_one,
-               head_cons, transpose_apply, map_apply]
-  · simp [Complex.star_def]
+    simp only [pauliY, conjTranspose, transpose_apply, map_apply]
+  · simp
   · simp [Complex.star_def, Complex.conj_I]
   · simp [Complex.star_def, Complex.conj_I]
-  · simp [Complex.star_def]
+  · simp
 
 /-- Matrix representation of su(2) generator T₁ = -i σ₁ / 2 -/
 noncomputable def su2Gen1Matrix : Matrix (Fin 2) (Fin 2) ℂ :=
@@ -130,49 +124,49 @@ noncomputable def su2Gen3 : SuNAlgebra 2 where
 /-- (0,0) component of the matrix product (pauliX * pauliY) -/
 private theorem pauliX_mul_pauliY_00 : (pauliX * pauliY) 0 0 = Complex.I := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- (0,1) component of the matrix product (pauliX * pauliY) -/
 private theorem pauliX_mul_pauliY_01 : (pauliX * pauliY) 0 1 = 0 := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- (1,0) component of the matrix product (pauliX * pauliY) -/
 private theorem pauliX_mul_pauliY_10 : (pauliX * pauliY) 1 0 = 0 := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- (1,1) component of the matrix product (pauliX * pauliY) -/
 private theorem pauliX_mul_pauliY_11 : (pauliX * pauliY) 1 1 = -Complex.I := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- (0,0) component of the matrix product (pauliY * pauliX) -/
 private theorem pauliY_mul_pauliX_00 : (pauliY * pauliX) 0 0 = -Complex.I := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- (0,1) component of the matrix product (pauliY * pauliX) -/
 private theorem pauliY_mul_pauliX_01 : (pauliY * pauliX) 0 1 = 0 := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- (1,0) component of the matrix product (pauliY * pauliX) -/
 private theorem pauliY_mul_pauliX_10 : (pauliY * pauliX) 1 0 = 0 := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- (1,1) component of the matrix product (pauliY * pauliX) -/
 private theorem pauliY_mul_pauliX_11 : (pauliY * pauliX) 1 1 = Complex.I := by
   simp only [mul_apply, pauliX, pauliY, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]
+             cons_val_zero, cons_val_one]
   ring
 
 /-- Any element of Fin 2 is either 0 or 1 -/
@@ -183,15 +177,14 @@ private theorem fin2_eq_zero_or_one (i : Fin 2) : i = 0 ∨ i = 1 := by
 private theorem pauliXY_comm_00 :
     (pauliX * pauliY - pauliY * pauliX) 0 0 = ((2 * Complex.I) • pauliZ) 0 0 := by
   simp only [sub_apply, smul_apply, pauliZ, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
-             pauliX_mul_pauliY_00, pauliY_mul_pauliX_00]
+             cons_val_zero, pauliX_mul_pauliY_00, pauliY_mul_pauliX_00]
   ring
 
 /-- (0,1) component of [σ₁, σ₂] -/
 private theorem pauliXY_comm_01 :
     (pauliX * pauliY - pauliY * pauliX) 0 1 = ((2 * Complex.I) • pauliZ) 0 1 := by
   simp only [sub_apply, smul_apply, pauliZ, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliX_mul_pauliY_01, pauliY_mul_pauliX_01]
   ring
 
@@ -199,7 +192,7 @@ private theorem pauliXY_comm_01 :
 private theorem pauliXY_comm_10 :
     (pauliX * pauliY - pauliY * pauliX) 1 0 = ((2 * Complex.I) • pauliZ) 1 0 := by
   simp only [sub_apply, smul_apply, pauliZ, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliX_mul_pauliY_10, pauliY_mul_pauliX_10]
   ring
 
@@ -207,7 +200,7 @@ private theorem pauliXY_comm_10 :
 private theorem pauliXY_comm_11 :
     (pauliX * pauliY - pauliY * pauliX) 1 1 = ((2 * Complex.I) • pauliZ) 1 1 := by
   simp only [sub_apply, smul_apply, pauliZ, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliX_mul_pauliY_11, pauliY_mul_pauliX_11]
   ring
 
@@ -248,51 +241,50 @@ theorem su2_bracket_12 : ⁅su2Gen1, su2Gen2⁆ = su2Gen3 := by
 /-- Components of the matrix product (pauliY * pauliZ) -/
 private theorem pauliY_mul_pauliZ_00 : (pauliY * pauliZ) 0 0 = 0 := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliY_mul_pauliZ_01 : (pauliY * pauliZ) 0 1 = Complex.I := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliY_mul_pauliZ_10 : (pauliY * pauliZ) 1 0 = Complex.I := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliY_mul_pauliZ_11 : (pauliY * pauliZ) 1 1 = 0 := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 
 /-- Components of the matrix product (pauliZ * pauliY) -/
 private theorem pauliZ_mul_pauliY_00 : (pauliZ * pauliY) 0 0 = 0 := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliZ_mul_pauliY_01 : (pauliZ * pauliY) 0 1 = -Complex.I := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliZ_mul_pauliY_10 : (pauliZ * pauliY) 1 0 = -Complex.I := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliZ_mul_pauliY_11 : (pauliZ * pauliY) 1 1 = 0 := by
   simp only [mul_apply, pauliY, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 
 /-- Components of [σ₂, σ₃] -/
 private theorem pauliYZ_comm_00 :
     (pauliY * pauliZ - pauliZ * pauliY) 0 0 = ((2 * Complex.I) • pauliX) 0 0 := by
   simp only [sub_apply, smul_apply, pauliX, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
-             pauliY_mul_pauliZ_00, pauliZ_mul_pauliY_00]; ring
+             cons_val_zero, pauliY_mul_pauliZ_00, pauliZ_mul_pauliY_00]; ring
 private theorem pauliYZ_comm_01 :
     (pauliY * pauliZ - pauliZ * pauliY) 0 1 = ((2 * Complex.I) • pauliX) 0 1 := by
   simp only [sub_apply, smul_apply, pauliX, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliY_mul_pauliZ_01, pauliZ_mul_pauliY_01]; ring
 private theorem pauliYZ_comm_10 :
     (pauliY * pauliZ - pauliZ * pauliY) 1 0 = ((2 * Complex.I) • pauliX) 1 0 := by
   simp only [sub_apply, smul_apply, pauliX, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliY_mul_pauliZ_10, pauliZ_mul_pauliY_10]; ring
 private theorem pauliYZ_comm_11 :
     (pauliY * pauliZ - pauliZ * pauliY) 1 1 = ((2 * Complex.I) • pauliX) 1 1 := by
   simp only [sub_apply, smul_apply, pauliX, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliY_mul_pauliZ_11, pauliZ_mul_pauliY_11]; ring
 
 /-- [σ₂, σ₃] = 2i σ₁ -/
@@ -324,55 +316,54 @@ theorem su2_bracket_23 : ⁅su2Gen2, su2Gen3⁆ = su2Gen1 := by
 /-- Components of the matrix product (pauliZ * pauliX) -/
 private theorem pauliZ_mul_pauliX_00 : (pauliZ * pauliX) 0 0 = 0 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliZ_mul_pauliX_01 : (pauliZ * pauliX) 0 1 = 1 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliZ_mul_pauliX_10 : (pauliZ * pauliX) 1 0 = -1 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliZ_mul_pauliX_11 : (pauliZ * pauliX) 1 1 = 0 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 
 /-- Components of the matrix product (pauliX * pauliZ) -/
 private theorem pauliX_mul_pauliZ_00 : (pauliX * pauliZ) 0 0 = 0 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliX_mul_pauliZ_01 : (pauliX * pauliZ) 0 1 = -1 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliX_mul_pauliZ_10 : (pauliX * pauliZ) 1 0 = 1 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 private theorem pauliX_mul_pauliZ_11 : (pauliX * pauliZ) 1 1 = 0 := by
   simp only [mul_apply, pauliX, pauliZ, Fin.sum_univ_two, Fin.isValue,
-             cons_val_zero, cons_val_one, head_cons]; ring
+             cons_val_zero, cons_val_one]; ring
 
 /-- Components of [σ₃, σ₁] -/
 private theorem pauliZX_comm_00 :
     (pauliZ * pauliX - pauliX * pauliZ) 0 0 = ((2 * Complex.I) • pauliY) 0 0 := by
   simp only [sub_apply, smul_apply, pauliY, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
-             pauliZ_mul_pauliX_00, pauliX_mul_pauliZ_00]; ring
+             cons_val_zero, pauliZ_mul_pauliX_00, pauliX_mul_pauliZ_00]; ring
 private theorem pauliZX_comm_01 :
     (pauliZ * pauliX - pauliX * pauliZ) 0 1 = ((2 * Complex.I) • pauliY) 0 1 := by
   simp only [sub_apply, smul_apply, pauliY, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliZ_mul_pauliX_01, pauliX_mul_pauliZ_01]
   have hI2 : Complex.I ^ 2 = -1 := Complex.I_sq
   ring_nf; rw [hI2]; ring
 private theorem pauliZX_comm_10 :
     (pauliZ * pauliX - pauliX * pauliZ) 1 0 = ((2 * Complex.I) • pauliY) 1 0 := by
   simp only [sub_apply, smul_apply, pauliY, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliZ_mul_pauliX_10, pauliX_mul_pauliZ_10]
   have hI2 : Complex.I ^ 2 = -1 := Complex.I_sq
   ring_nf; rw [hI2]; ring
 private theorem pauliZX_comm_11 :
     (pauliZ * pauliX - pauliX * pauliZ) 1 1 = ((2 * Complex.I) • pauliY) 1 1 := by
   simp only [sub_apply, smul_apply, pauliY, smul_eq_mul,
-             cons_val_zero, cons_val_one, head_cons,
+             cons_val_zero, cons_val_one,
              pauliZ_mul_pauliX_11, pauliX_mul_pauliZ_11]; ring
 
 /-- [σ₃, σ₁] = 2i σ₂ -/
@@ -408,8 +399,7 @@ theorem su2Gen3_ne_zero : su2Gen3 ≠ 0 := by
   simp only [su2Gen3, su2Gen3Matrix] at this
   have h00 : ((-Complex.I / 2 : ℂ) • pauliZ) 0 0 = (0 : Matrix (Fin 2) (Fin 2) ℂ) 0 0 := by
     rw [this]
-  simp only [smul_apply, pauliZ, of_apply, cons_val_zero, smul_eq_mul, mul_one,
-             zero_apply] at h00
+  simp only [smul_apply, pauliZ, cons_val_zero, smul_eq_mul, mul_one, zero_apply] at h00
   have : (-Complex.I / 2 : ℂ) = 0 := h00
   have hI : Complex.I ≠ 0 := Complex.I_ne_zero
   have h2 : (2 : ℂ) ≠ 0 := two_ne_zero
@@ -580,14 +570,12 @@ theorem embedMatrix2_antiHermitian (M : Matrix (Fin 2) (Fin 2) ℂ)
     (hM : conjTranspose M = -M) (N : ℕ) :
     conjTranspose (embedMatrix2 M N) = -embedMatrix2 M N := by
   ext i j
-  simp only [embedMatrix2, conjTranspose, of_apply, transpose_apply, map_apply,
-             Pi.neg_apply, neg_apply]
+  simp only [embedMatrix2, conjTranspose, transpose_apply, map_apply, neg_apply]
   by_cases hi : i.val < 2 <;> by_cases hj : j.val < 2
   · -- i < 2, j < 2
     simp only [hi, hj, dite_true]
     have hM' := congr_fun₂ hM ⟨i.val, hi⟩ ⟨j.val, hj⟩
-    simp only [conjTranspose, of_apply, transpose_apply, map_apply, Pi.neg_apply,
-               neg_apply] at hM'
+    simp only [conjTranspose, transpose_apply, map_apply, neg_apply] at hM'
     exact hM'
   · -- i < 2, j ≥ 2
     simp only [hi, hj, dite_true, dite_false, star_zero, neg_zero]
@@ -690,12 +678,12 @@ theorem embedSu2_bracket (A B : SuNAlgebra 2) (N : ℕ) :
     simp only [hi, hj, dite_false, dite_true]
     have hdite0 : ∀ k : Fin (N + 2), (if h : k.val < 2 then (0 : ℂ) else 0) = 0 := fun k => by
       split_ifs <;> rfl
-    simp only [hdite0, zero_mul, sub_self, Finset.sum_const_zero]
+    simp only [zero_mul, sub_self, Finset.sum_const_zero]
   · -- i ≥ 2, j ≥ 2
     simp only [hi, hj, dite_false]
     have hdite0 : ∀ k : Fin (N + 2), (if h : k.val < 2 then (0 : ℂ) else 0) = 0 := fun k => by
       split_ifs <;> rfl
-    simp only [hdite0, mul_zero, zero_mul, sub_self, Finset.sum_const_zero]
+    simp only [hdite0, mul_zero, sub_self, Finset.sum_const_zero]
 
 /-- Embedding preserves nonzero elements -/
 theorem embedSu2_ne_zero (A : SuNAlgebra 2) (hA : A ≠ 0) (N : ℕ) :

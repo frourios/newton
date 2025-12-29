@@ -6,18 +6,6 @@ import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Newton.MeasureTheory.Integral.Holder
 import Newton.MeasureTheory.Function.LpSpace.Duality
 
-/-!
-# Minkowski's Integral Inequality
-
-This file contains Minkowski's integral inequality and related results.
-
-Minkowski's integral inequality is a fundamental inequality in analysis that
-generalizes the triangle inequality to integrals. It states that for measurable
-functions and 1 ≤ p < ∞:
-
-  ‖∫ F(·, y) dν(y)‖_{L^p(μ)} ≤ ∫ ‖F(·, y)‖_{L^p(μ)} dν(y)
--/
-
 open MeasureTheory ENNReal NNReal
 open scoped ENNReal
 
@@ -277,7 +265,7 @@ lemma convolution_kernel_integrable
     refine lintegral_congr_ae ?_
     refine Filter.Eventually.of_forall ?_
     intro q
-    simp [Af, Ag, norm_mul, ENNReal.ofReal_mul, mul_comm, mul_left_comm, mul_assoc]
+    simp [Af, Ag, mul_comm]
   -- Change variables via the measure-preserving map `(x, y) ↦ (x - y, y)`.
   set τ : G × G → G × G := fun q => (q.1 - q.2, q.2)
   have h_pres : MeasurePreserving τ (μ.prod μ) (μ.prod μ) :=

@@ -1,14 +1,5 @@
 import Newton.Analysis.Convolution.Auxiliary
 
-/-!
-# Inner Integral Bounds for Young's Convolution Inequality
-
-This file contains the inner integral evaluation lemmas needed for proving Young's convolution
-inequality. The main result is `inner_integral_bound`, which provides a bound for the inner
-integral in the convolution, and `young_convolution_r_ne_top`, which proves the theorem when
-r ≠ ∞.
--/
-
 open MeasureTheory Complex NNReal
 open scoped ENNReal Topology ContDiff ComplexConjugate
 
@@ -16,15 +7,13 @@ namespace Newton
 
 variable {n : ℕ}
 
-/-! ### 1.2 Inner integral evaluation -/
-
 /-- Inner integral bound for fixed x -/
 lemma inner_integral_bound
     (f g : (Fin n → ℝ) → ℂ)
     (p q r : ℝ≥0∞)
     (hp : 1 ≤ p) (hq : 1 ≤ q) (hr : 1 ≤ r)
     (hp_ne_top : p ≠ ⊤) (hq_ne_top : q ≠ ⊤) (hr_ne_top : r ≠ ⊤)
-    (hpqr : 1/p + 1/q = 1 + 1/r)
+    (hpqr : 1 / p + 1 / q = 1 + 1 / r)
     (hf : MemLp f p volume) (hg : MemLp g q volume)
     (x : Fin n → ℝ) :
     ∫⁻ y, ‖f y‖₊ * ‖g (x - y)‖₊ ∂volume ≤
@@ -32,13 +21,10 @@ lemma inner_integral_bound
       (eLpNorm f p volume)^(1 - p/r).toReal *
       (eLpNorm g q volume)^(1 - q/r).toReal := by
   -- Essential three-function Hölder part begins here
-  -- Get signs of exponents and 1-p/r,1-q/r ≥ 0 from `decomposition_exponents_pos`
   have hpos := decomposition_exponents_pos hp hq hr_ne_top
   rcases hpos with ⟨hp_div_pos, hq_div_pos, h1m_le, h1m_le'⟩
-
   -- Derive three-function Hölder exponent condition from Young's exponent condition
   have h3 := young_exponent_to_three_holder hp hq hr hp_ne_top hq_ne_top hr_ne_top hpqr
-
   have h_holder :
       ∫⁻ y, ‖f y‖₊ * ‖g (x - y)‖₊ ∂volume ≤
         (∫⁻ y, (‖f y‖₊^p.toReal * ‖g (x - y)‖₊^q.toReal) ∂volume)^(1/r.toReal) *
@@ -48,18 +34,12 @@ lemma inner_integral_bound
     have h_three_exp :
         1 / r + (r - p) / (p * r) + (r - q) / (q * r) = (1 : ℝ≥0∞) :=
       young_exponent_to_three_holder hp hq hr hp_ne_top hq_ne_top hr_ne_top hpqr
-
-    -- Define non-negative functions (ℝ≥0∞-valued) corresponding to f, g, h
-    -- F(y) := ‖f y‖₊^(p/r).toReal * ‖g(x-y)‖₊^(q/r).toReal
-    -- G(y) := ‖f y‖₊^(1 - p/r).toReal
-    -- H(y) := ‖g(x-y)‖₊^(1 - q/r).toReal
     let F : (Fin n → ℝ) → ℝ≥0∞ :=
       fun y => ‖f y‖₊ ^ (p / r).toReal * ‖g (x - y)‖₊ ^ (q / r).toReal
     let G : (Fin n → ℝ) → ℝ≥0∞ :=
       fun y => ‖f y‖₊ ^ (1 - p / r).toReal
     let H : (Fin n → ℝ) → ℝ≥0∞ :=
       fun y => ‖g (x - y)‖₊ ^ (1 - q / r).toReal
-
     -- measurability: extract AEMeasurable from MemLp, then closed under nnnorm and rpow
     have hF_ae : AEMeasurable F volume := by
       -- a.e. strong measurability of f and g
@@ -129,7 +109,6 @@ lemma inner_integral_bound
               (‖g (x - y)‖₊ : ℝ≥0∞) ^ (1 - q / r).toReal) volume :=
         hg_nnnorm.pow_const _
       simpa [H] using hH
-
     -- Three-factor decomposition of integrand:
     -- ‖f y‖ * ‖g (x - y)‖ = F(y) * G(y) * H(y) (converted from real-valued lemma)
     have h_pointwise :
@@ -204,7 +183,6 @@ lemma inner_integral_bound
         _ = ‖f y‖₊ ^ (p / r).toReal * ‖g (x - y)‖₊ ^ (q / r).toReal *
             ‖f y‖₊ ^ (1 - p / r).toReal * ‖g (x - y)‖₊ ^ (1 - q / r).toReal := by
               ring
-
     -- Apply three-function Hölder inequality to F, G, H here.
     -- Under Young's exponent condition, handle endpoint cases (p = r or q = r) and
     -- strictly interior case (p < r and q < r) separately.
@@ -300,13 +278,11 @@ lemma inner_integral_bound
         rw [ENNReal.toReal_div, ENNReal.toReal_one]
         have h_qr_ne : q.toReal * r.toReal ≠ 0 := mul_ne_zero (ne_of_gt hq_pos) (ne_of_gt hr_pos)
         field_simp [h_qr_ne, ne_of_gt hq_pos, ne_of_gt hr_pos]
-        left; ring
       have h_eLpNorm_eq : eLpNorm g q volume =
           (∫⁻ z, ‖g z‖₊ ^ q.toReal ∂volume) ^ (1 / q.toReal) := by
         unfold eLpNorm eLpNorm'
         have hq_ne_zero : q ≠ 0 := ne_of_gt (lt_of_lt_of_le one_pos hq)
-        simp only [one_div, hq_ne_top, hq_ne_zero, reduceIte, ne_eq, ite_false,
-          enorm_eq_nnnorm]
+        simp only [hq_ne_top, hq_ne_zero, ite_false, enorm_eq_nnnorm]
       -- Transform RHS: RHS of h_holder = RHS in eLpNorm form
       have h_rhs_eq : (∫⁻ y, ‖f y‖₊ ^ p.toReal * ‖g (x - y)‖₊ ^ q.toReal) ^ (1 / r.toReal) *
             (∫⁻ y, ‖f y‖₊ ^ p.toReal) ^ ((r - p) / (p * r)).toReal *
@@ -377,7 +353,9 @@ lemma inner_integral_bound
             (1 : ℝ≥0∞)/r ≠ ⊤ := ENNReal.div_ne_top ENNReal.one_ne_top (ne_of_gt hr_pos')
           rw [ENNReal.toReal_sub_of_le h_le ENNReal.one_ne_top]
           simp only [ENNReal.toReal_one, ENNReal.toReal_div]
-          field_simp [ne_of_gt hr_pos]
+          have hr_pos_real : 0 < r.toReal := ENNReal.toReal_pos (ne_of_gt hr_pos') hr_ne_top
+          field_simp [ne_of_gt hr_pos_real]
+          ring
         rw [h_exp_sum, ENNReal.rpow_one]
       -- Apply Hölder inequality
       have h_a_pow : ∀ y, a y ^ r.toReal = ‖f y‖₊ ^ r.toReal * ‖g (x - y)‖₊ := by
@@ -387,8 +365,9 @@ lemma inner_integral_bound
         congr 1
         rw [← ENNReal.rpow_mul]
         have h_exp : (1/r).toReal * r.toReal = 1 := by
-          rw [ENNReal.toReal_div]
-          field_simp [ne_of_gt hr_pos]
+          rw [ENNReal.toReal_div, ENNReal.toReal_one]
+          have hr_pos_real : 0 < r.toReal := ENNReal.toReal_pos (ne_of_gt hr_pos') hr_ne_top
+          field_simp [ne_of_gt hr_pos_real]
         rw [h_exp, ENNReal.rpow_one]
       have h_b_pow : ∀ y, b y ^ (r / (r - 1)).toReal = ‖g (x - y)‖₊ := by
         intro y
@@ -441,8 +420,8 @@ lemma inner_integral_bound
       have h_eLpNorm_g_one : eLpNorm g q volume = ∫⁻ z, ‖g z‖₊ ∂volume := by
         rw [hq_eq_one]
         unfold eLpNorm eLpNorm'
-        simp only [ENNReal.one_ne_top, reduceIte, ENNReal.toReal_one, ne_eq,
-          one_ne_zero, not_false_eq_true, ENNReal.rpow_one, one_div, inv_one, enorm_eq_nnnorm]
+        simp only [ENNReal.one_ne_top, reduceIte, ENNReal.toReal_one,
+          one_ne_zero, ENNReal.rpow_one, one_div, inv_one, enorm_eq_nnnorm]
       -- Transform the RHS
       calc ∫⁻ y, ‖f y‖₊ * ‖g (x - y)‖₊ ∂volume
           = ∫⁻ y, a y * b y ∂volume := by
@@ -502,6 +481,7 @@ lemma inner_integral_bound
               · -- p⁻¹ + q⁻¹ = 1⁻¹ = 1
                 rw [hq', inv_one]
                 field_simp [hr_ne, hr_sub_ne]
+                ring
               · exact hr_pos
               · exact hq'_pos
             -- Convert RHS exponent 1/(r/(r-1)) = (r-1)/r of Hölder inequality
@@ -589,6 +569,7 @@ lemma inner_integral_bound
             rw [ENNReal.toReal_sub_of_le h_le ENNReal.one_ne_top]
             simp only [ENNReal.toReal_one, ENNReal.toReal_div]
             field_simp [ne_of_gt hr_pos]
+            ring
           rw [h_exp_sum, ENNReal.rpow_one]
         have h_a_pow : ∀ y, a y ^ r.toReal = ‖g (x - y)‖₊ ^ r.toReal * ‖f y‖₊ := by
           intro y
@@ -597,7 +578,7 @@ lemma inner_integral_bound
           congr 1
           rw [← ENNReal.rpow_mul]
           have h_exp : (1/r).toReal * r.toReal = 1 := by
-            rw [ENNReal.toReal_div]
+            rw [ENNReal.toReal_div, ENNReal.toReal_one]
             field_simp [ne_of_gt hr_pos]
           rw [h_exp, ENNReal.rpow_one]
         have h_b_pow : ∀ y, b y ^ (r / (r - 1)).toReal = ‖f y‖₊ := by
@@ -633,8 +614,8 @@ lemma inner_integral_bound
         have h_eLpNorm_f_one : eLpNorm f p volume = ∫⁻ z, ‖f z‖₊ ∂volume := by
           rw [hp_eq_one]
           unfold eLpNorm eLpNorm'
-          simp only [ENNReal.one_ne_top, reduceIte, ENNReal.toReal_one, ne_eq,
-            one_ne_zero, not_false_eq_true, ENNReal.rpow_one, one_div, inv_one, enorm_eq_nnnorm]
+          simp only [ENNReal.one_ne_top, reduceIte, ENNReal.toReal_one,
+            one_ne_zero, ENNReal.rpow_one, one_div, inv_one, enorm_eq_nnnorm]
         -- Convert exponents
         have h_exp_conv : (1 - p / r).toReal = ((r - 1) / r).toReal := by
           rw [hp_eq_one]
@@ -692,6 +673,7 @@ lemma inner_integral_bound
           constructor
           · rw [hq', inv_one]
             field_simp [hr_ne, hr_sub_ne]
+            ring
           · exact hr_pos
           · exact hq'_pos
         have h_exp_eq'' : (1 / (r / (r - 1)).toReal) = ((r - 1) / r).toReal := by
@@ -797,68 +779,67 @@ lemma inner_integral_bound
             (∫⁻ y, ‖g (x - y)‖₊ ^ q.toReal ∂volume) ^ ((r - q) / (q * r)).toReal := by
           simp only [P, Q, R]
           congr 1
-          congr 1
-          -- Show (∫ F^r)^(1/r) = (∫ ‖f‖^p * ‖g‖^q)^(1/r)
           · congr 1
-            apply lintegral_congr
-            intro y
-            simp only [F]
-            rw [ENNReal.mul_rpow_of_nonneg _ _ ENNReal.toReal_nonneg]
-            congr 1
-            · rw [← ENNReal.rpow_mul, ENNReal.toReal_div]
+            -- Show (∫ F^r)^(1/r) = (∫ ‖f‖^p * ‖g‖^q)^(1/r)
+            · congr 1
+              apply lintegral_congr
+              intro y
+              simp only [F]
+              rw [ENNReal.mul_rpow_of_nonneg _ _ ENNReal.toReal_nonneg]
               congr 1
-              have hr_ne : r.toReal ≠ 0 :=
-                ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hr)) hr_ne_top)
-              field_simp [hr_ne]
-            · rw [← ENNReal.rpow_mul, ENNReal.toReal_div]
+              · rw [← ENNReal.rpow_mul, ENNReal.toReal_div]
+                congr 1
+                have hr_ne : r.toReal ≠ 0 :=
+                  ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hr)) hr_ne_top)
+                field_simp [hr_ne]
+              · rw [← ENNReal.rpow_mul, ENNReal.toReal_div]
+                congr 1
+                have hr_ne : r.toReal ≠ 0 :=
+                  ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hr)) hr_ne_top)
+                field_simp [hr_ne]
+            -- Show (∫ G^Q)^(1/Q) = (∫ ‖f‖^p)^((r-p)/(pr))
+            · have h_Q_inv : (1 : ℝ) / Q.toReal = ((r - p) / (p * r)).toReal := by
+                simp only [Q]
+                rw [ENNReal.toReal_div, ENNReal.toReal_mul]
+                rw [ENNReal.toReal_sub_of_le (young_exponent_p_le_r hq hpqr) hr_ne_top]
+                have hr_ne : r.toReal ≠ 0 :=
+                  ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hr)) hr_ne_top)
+                have hp_lt_r : p < r := lt_of_le_of_ne (young_exponent_p_le_r hq hpqr) hp_eq_r
+                have h_sub_ne : r.toReal - p.toReal ≠ 0 := by
+                  have h : p.toReal < r.toReal :=
+                    ENNReal.toReal_lt_toReal hp_ne_top hr_ne_top |>.mpr hp_lt_r
+                  linarith
+                have h_pr_ne : p.toReal * r.toReal ≠ 0 := mul_ne_zero
+                  (ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hp)) hp_ne_top))
+                  hr_ne
+                rw [ENNReal.toReal_div, ENNReal.toReal_mul]
+                rw [ENNReal.toReal_sub_of_le (young_exponent_p_le_r hq hpqr) hr_ne_top]
+                field_simp [h_pr_ne, h_sub_ne]
+              rw [h_Q_inv]
               congr 1
-              have hr_ne : r.toReal ≠ 0 :=
-                ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hr)) hr_ne_top)
-              field_simp [hr_ne]
-          -- Show (∫ G^Q)^(1/Q) = (∫ ‖f‖^p)^((r-p)/(pr))
-          · have h_Q_inv : (1 : ℝ) / Q.toReal = ((r - p) / (p * r)).toReal := by
-              simp only [Q]
+              -- Show (∫ G^Q) = (∫ ‖f‖^p)
+              apply lintegral_congr
+              intro y
+              simp only [G]
+              rw [← ENNReal.rpow_mul]
+              congr 1
+              -- Show (1 - p/r).toReal * ((pr)/(r-p)).toReal = p.toReal
+              have hp_le_r : p ≤ r := young_exponent_p_le_r hq hpqr
+              have h_le : p / r ≤ 1 := by
+                rw [ENNReal.div_le_iff (ne_of_gt (one_pos.trans_le hr)) hr_ne_top, one_mul]
+                exact hp_le_r
+              rw [ENNReal.toReal_sub_of_le h_le (by simp : (1 : ℝ≥0∞) ≠ ⊤)]
+              rw [ENNReal.toReal_div, ENNReal.toReal_one]
               rw [ENNReal.toReal_div, ENNReal.toReal_mul]
-              rw [ENNReal.toReal_sub_of_le (young_exponent_p_le_r hq hpqr) hr_ne_top]
+              rw [ENNReal.toReal_sub_of_le hp_le_r hr_ne_top]
               have hr_ne : r.toReal ≠ 0 :=
                 ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hr)) hr_ne_top)
-              have hp_lt_r : p < r := lt_of_le_of_ne (young_exponent_p_le_r hq hpqr) hp_eq_r
+              have hp_lt_r : p < r := lt_of_le_of_ne hp_le_r hp_eq_r
               have h_sub_ne : r.toReal - p.toReal ≠ 0 := by
                 have h : p.toReal < r.toReal :=
                   ENNReal.toReal_lt_toReal hp_ne_top hr_ne_top |>.mpr hp_lt_r
                 linarith
-              have h_pr_ne : p.toReal * r.toReal ≠ 0 := mul_ne_zero
-                (ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hp)) hp_ne_top))
-                hr_ne
-              rw [ENNReal.toReal_div, ENNReal.toReal_mul]
-              rw [ENNReal.toReal_sub_of_le (young_exponent_p_le_r hq hpqr) hr_ne_top]
-              field_simp [h_pr_ne, h_sub_ne]
-            rw [h_Q_inv]
-            congr 1
-            -- Show (∫ G^Q) = (∫ ‖f‖^p)
-            apply lintegral_congr
-            intro y
-            simp only [G, Q]
-            rw [← ENNReal.rpow_mul]
-            congr 1
-            -- Show (1 - p/r).toReal * ((pr)/(r-p)).toReal = p.toReal
-            have hp_le_r : p ≤ r := young_exponent_p_le_r hq hpqr
-            have h_le : p / r ≤ 1 := by
-              rw [ENNReal.div_le_iff (ne_of_gt (one_pos.trans_le hr)) hr_ne_top, one_mul]
-              exact hp_le_r
-            rw [ENNReal.toReal_sub_of_le h_le (by simp : (1 : ℝ≥0∞) ≠ ⊤)]
-            rw [ENNReal.toReal_div, ENNReal.toReal_one]
-            rw [ENNReal.toReal_div, ENNReal.toReal_mul]
-            rw [ENNReal.toReal_sub_of_le hp_le_r hr_ne_top]
-            have hr_ne : r.toReal ≠ 0 :=
-              ne_of_gt (ENNReal.toReal_pos (ne_of_gt (one_pos.trans_le hr)) hr_ne_top)
-            have hp_lt_r : p < r := lt_of_le_of_ne hp_le_r hp_eq_r
-            have h_sub_ne : r.toReal - p.toReal ≠ 0 := by
-              have h : p.toReal < r.toReal :=
-                ENNReal.toReal_lt_toReal hp_ne_top hr_ne_top |>.mpr hp_lt_r
-              linarith
-            field_simp [hr_ne, h_sub_ne]
-            ring
+              field_simp [hr_ne, h_sub_ne]
           -- Show (∫ H^R)^(1/R) = (∫ ‖g‖^q)^((r-q)/(qr))
           · have hq_le_r : q ≤ r := young_exponent_q_le_r hp hpqr
             have hq_lt_r : q < r := lt_of_le_of_ne hq_le_r hq_eq_r
@@ -883,7 +864,7 @@ lemma inner_integral_bound
             -- Show (∫ H^R) = (∫ ‖g‖^q)
             apply lintegral_congr
             intro y
-            simp only [H, R]
+            simp only [H]
             rw [← ENNReal.rpow_mul]
             congr 1
             have h_le : q / r ≤ 1 := by
@@ -900,12 +881,8 @@ lemma inner_integral_bound
                 ENNReal.toReal_lt_toReal hq_ne_top hr_ne_top |>.mpr hq_lt_r
               linarith
             field_simp [hr_ne, h_sub_ne]
-            ring
-
   -- The rest follows from the definition of eLpNorm
   -- (∫ ‖f‖₊^p)^{(r-p)/(pr)} = ‖f‖_p^{(r-p)/r} = ‖f‖_p^{1-p/r}
-  -- Because eLpNorm f p = (∫ ‖f‖₊^p)^{1/p}, so
-  -- (∫ ‖f‖₊^p)^{(r-p)/(pr)} = ((∫ ‖f‖₊^p)^{1/p})^{(r-p)/r} = ‖f‖_p^{(r-p)/r}
   have hf_pow :
       (∫⁻ y, ‖f y‖₊^p.toReal ∂volume)^((r - p) / (p * r)).toReal =
         (eLpNorm f p volume)^(1 - p/r).toReal := by
@@ -926,13 +903,12 @@ lemma inner_integral_bound
       have h_pr_ne : p.toReal * r.toReal ≠ 0 := by
         exact mul_ne_zero (ne_of_gt hp_pos) (ne_of_gt hr_pos)
       field_simp [h_pr_ne, ne_of_gt hp_pos, ne_of_gt hr_pos]
-      left; ring
     -- Definition of eLpNorm: eLpNorm f p = (∫ ‖f‖^p)^{1/p}
     have hp_ne_zero : p ≠ 0 := ne_of_gt (one_pos.trans_le hp)
     have h_eLpNorm_eq :
         eLpNorm f p volume = (∫⁻ y, (‖f y‖₊ : ℝ≥0∞)^p.toReal ∂volume)^(1/p.toReal) := by
       unfold eLpNorm eLpNorm'
-      simp only [one_div, hp_ne_top, reduceIte, ne_eq, hp_ne_zero, ↓reduceIte, enorm_eq_nnnorm]
+      simp only [one_div, hp_ne_top, reduceIte, hp_ne_zero, ↓reduceIte, enorm_eq_nnnorm]
     rw [h_exp_eq, h_eLpNorm_eq]
     -- Goal: (∫ ‖f‖^p)^((1-p/r)/p) = ((∫ ‖f‖^p)^(1/p))^(1-p/r)
     -- Use rpow_mul: x^(a/b) = (x^(1/b))^a when written correctly
@@ -962,18 +938,16 @@ lemma inner_integral_bound
       have h_qr_ne : q.toReal * r.toReal ≠ 0 := by
         exact mul_ne_zero (ne_of_gt hq_pos) (ne_of_gt hr_pos)
       field_simp [h_qr_ne, ne_of_gt hq_pos, ne_of_gt hr_pos]
-      left; ring
     have hq_ne_zero : q ≠ 0 := ne_of_gt (one_pos.trans_le hq)
     have h_eLpNorm_eq :
         eLpNorm g q volume = (∫⁻ z, (‖g z‖₊ : ℝ≥0∞)^q.toReal ∂volume)^(1/q.toReal) := by
       unfold eLpNorm eLpNorm'
-      simp only [one_div, hq_ne_top, hq_ne_zero, reduceIte, ne_eq, ite_false, enorm_eq_nnnorm]
+      simp only [hq_ne_top, hq_ne_zero, ite_false, enorm_eq_nnnorm]
     rw [h_exp_eq, h_eLpNorm_eq]
     have h_exp_rearrange : (1 - q/r).toReal / q.toReal = 1/q.toReal * (1 - q/r).toReal := by
       ring
     rw [h_exp_rearrange]
     rw [← ENNReal.rpow_mul]
-
   -- Substitute everything to reach conclusion
   -- Rewrite RHS of h_holder using hf_pow, hg_pow to match the goal
   calc ∫⁻ y, ‖f y‖₊ * ‖g (x - y)‖₊ ∂volume
@@ -990,7 +964,7 @@ lemma young_convolution_r_ne_top
     (p q r : ℝ≥0∞)
     (hp : 1 ≤ p) (hq : 1 ≤ q) (hr : 1 ≤ r)
     (hp_ne_top : p ≠ ⊤) (hq_ne_top : q ≠ ⊤) (hr_ne_top : r ≠ ⊤)
-    (hpqr : 1/p + 1/q = 1 + 1/r)
+    (hpqr : 1 / p + 1 / q = 1 + 1 / r)
     (hf : MemLp f p volume) (hg : MemLp g q volume) :
     MemLp (fun x => ∫ y, f (x - y) * g y) r volume ∧
     eLpNorm (fun x => ∫ y, f (x - y) * g y) r volume ≤
@@ -1002,29 +976,23 @@ lemma young_convolution_r_ne_top
   have hp_ne_zero : p ≠ 0 := ne_of_gt hp_pos
   have hq_pos : 0 < q := one_pos.trans_le hq
   have hq_ne_zero : q ≠ 0 := ne_of_gt hq_pos
-
   have hr_pos_real : 0 < r.toReal := ENNReal.toReal_pos hr_ne_zero hr_ne_top
   have hp_pos_real : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero hp_ne_top
   have hq_pos_real : 0 < q.toReal := ENNReal.toReal_pos hq_ne_zero hq_ne_top
-
   -- Get that eLpNorm is finite
   have hf_eLpNorm_lt_top : eLpNorm f p volume < ⊤ := hf.eLpNorm_lt_top
   have hg_eLpNorm_lt_top : eLpNorm g q volume < ⊤ := hg.eLpNorm_lt_top
-
   -- Get AEStronglyMeasurable
   have hf_aesm : AEStronglyMeasurable f volume := hf.aestronglyMeasurable
   have hg_aesm : AEStronglyMeasurable g volume := hg.aestronglyMeasurable
-
   -- Convolution function
   let conv : (Fin n → ℝ) → ℂ := fun x => ∫ y, f (x - y) * g y
-
   -- Main estimate: use inner_integral_bound
   have h_inner_bound : ∀ x, ∫⁻ y, ‖f y‖₊ * ‖g (x - y)‖₊ ∂volume ≤
       (∫⁻ y, ‖f y‖₊^p.toReal * ‖g (x - y)‖₊^q.toReal ∂volume)^(1/r.toReal) *
       (eLpNorm f p volume)^(1 - p/r).toReal *
       (eLpNorm g q volume)^(1 - q/r).toReal := fun x =>
     inner_integral_bound f g p q r hp hq hr hp_ne_top hq_ne_top hr_ne_top hpqr hf hg x
-
   -- Estimate the norm of convolution
   have h_conv_enorm_bound : ∀ x, ‖conv x‖ₑ ≤
       ∫⁻ y, ‖f y‖₊ * ‖g (x - y)‖₊ ∂volume := by
@@ -1043,7 +1011,6 @@ lemma young_convolution_r_ne_top
           apply lintegral_congr
           intro y
           simp [sub_sub_cancel]
-
   have h_conv_aesm : AEStronglyMeasurable conv volume := by
     -- Use that (x, y) ↦ f(x - y) * g(y) is AEStronglyMeasurable with product measure
     have h_prod_aesm : AEStronglyMeasurable
@@ -1076,7 +1043,6 @@ lemma young_convolution_r_ne_top
         hg_aesm.comp_quasiMeasurePreserving Measure.quasiMeasurePreserving_snd
       exact hf_comp.mul hg_comp
     exact AEStronglyMeasurable.integral_prod_right' h_prod_aesm
-
   -- Combine the estimates from inner_integral_bound
   -- ‖conv x‖ₑ ≤ C(x) * A * B
   -- where C(x) = (∫ |f|^p |g(x-·)|^q)^{1/r}, A = ‖f‖_p^{1-p/r}, B = ‖g‖_q^{1-q/r}
@@ -1088,13 +1054,12 @@ lemma young_convolution_r_ne_top
     calc ‖conv x‖ₑ
         ≤ ∫⁻ y, ‖f y‖₊ * ‖g (x - y)‖₊ ∂volume := h_conv_enorm_bound x
       _ ≤ _ := h_inner_bound x
-
   constructor
   · -- Proof of MemLp
     rw [MemLp, and_iff_right h_conv_aesm]
     -- Show eLpNorm conv r volume < ⊤
     unfold eLpNorm eLpNorm'
-    simp only [hr_ne_top, reduceIte, ne_eq, hr_ne_zero, ↓reduceIte]
+    simp only [hr_ne_top, reduceIte, hr_ne_zero, ↓reduceIte]
     -- Show (∫ ‖conv x‖^r dx)^{1/r} < ⊤
     rw [one_div]
     apply ENNReal.rpow_lt_top_of_nonneg (by positivity : 0 ≤ r.toReal⁻¹)
@@ -1256,7 +1221,7 @@ lemma young_convolution_r_ne_top
               (f := fun xy : (Fin n → ℝ) × (Fin n → ℝ) =>
                 (‖f xy.1‖₊ : ℝ≥0∞)^p.toReal * ‖g (xy.2 - xy.1)‖₊^q.toReal)
               h_swap_meas
-            simp only [Function.uncurry] at h1 h2
+            simp only at h1 h2
             -- h1: ∫∫ |f(y)|^p |g(x-y)|^q dy dx = ∫ (x,y) |f(y)|^p |g(x-y)|^q d(vol×vol)
             -- Exchange order: ∫ (x,y) = ∫ (y,x) (by swap) = ∫∫ dy dx
             have h_swap_eq :
@@ -1271,7 +1236,7 @@ lemma young_convolution_r_ne_top
               rw [← h_swap_pres.lintegral_comp_emb MeasurableEquiv.prodComm.measurableEmbedding]
               apply lintegral_congr
               intro xy
-              simp [Prod.swap]
+              simp only [Prod.swap]
             rw [← h1, h_swap_eq, h2]
           -- ∫∫ |f(y)|^p |g(x-y)|^q dx dy = ∫ |f(y)|^p (∫ |g(x-y)|^q dx) dy
           have h_inner_const : ∀ y,
@@ -1327,7 +1292,6 @@ lemma young_convolution_r_ne_top
     let B : ℝ≥0∞ := (eLpNorm g q volume) ^ (1 - q/r).toReal
     let C : (Fin n → ℝ) → ℝ≥0∞ := fun x =>
       (∫⁻ y, ‖f y‖₊^p.toReal * ‖g (x - y)‖₊^q.toReal ∂volume)^(1/r.toReal)
-
     have hA_lt_top : A < ⊤ := by
       simp only [A]
       apply ENNReal.rpow_lt_top_of_nonneg
@@ -1360,19 +1324,16 @@ lemma young_convolution_r_ne_top
         simp only [ENNReal.toReal_one]
         linarith
       · exact ne_of_lt hg_eLpNorm_lt_top
-
     have h_Cx_r : ∀ x, (C x)^r.toReal =
         ∫⁻ y, ‖f y‖₊^p.toReal * ‖g (x - y)‖₊^q.toReal ∂volume := by
       intro x
       simp only [C]
       rw [← ENNReal.rpow_mul, one_div, inv_mul_cancel₀ (ne_of_gt hr_pos_real)]
       simp
-
     -- eLpNorm conv r = (∫ ‖conv‖^r)^{1/r}
     unfold eLpNorm eLpNorm'
-    simp only [hr_ne_top, reduceIte, ne_eq, hr_ne_zero, ↓reduceIte]
+    simp only [hr_ne_top, reduceIte, hr_ne_zero, ↓reduceIte]
     rw [one_div]
-
     -- Estimate using the upper bound of the integral
     -- Show ∫ ‖conv x‖^r dx ≤ A^r * B^r * (‖f‖_p^p * ‖g‖_q^q)
     have h_bound_r : ∀ x, ‖conv x‖ₑ^r.toReal ≤ (C x * A * B)^r.toReal := by
@@ -1384,7 +1345,6 @@ lemma young_convolution_r_ne_top
       intro x
       rw [ENNReal.mul_rpow_of_nonneg _ _ (le_of_lt hr_pos_real)]
       rw [ENNReal.mul_rpow_of_nonneg _ _ (le_of_lt hr_pos_real)]
-
     have h_lintegral_bound : ∫⁻ x, ‖conv x‖ₑ^r.toReal ∂volume ≤
         A^r.toReal * B^r.toReal *
         ((∫⁻ y, ‖f y‖₊^p.toReal ∂volume) * ∫⁻ z, ‖g z‖₊^q.toReal ∂volume) := by
@@ -1456,7 +1416,7 @@ lemma young_convolution_r_ne_top
           (f := fun xy : (Fin n → ℝ) × (Fin n → ℝ) =>
             (‖f xy.1‖₊ : ℝ≥0∞)^p.toReal * ‖g (xy.2 - xy.1)‖₊^q.toReal)
           h_swap_meas
-        simp only [Function.uncurry] at h1 h2
+        simp only at h1 h2
         have h_swap_eq :
             ∫⁻ xy : (Fin n → ℝ) × (Fin n → ℝ),
               (‖f xy.2‖₊ : ℝ≥0∞)^p.toReal * ‖g (xy.1 - xy.2)‖₊^q.toReal ∂(volume.prod volume) =
@@ -1469,7 +1429,7 @@ lemma young_convolution_r_ne_top
           rw [← h_swap_pres.lintegral_comp_emb MeasurableEquiv.prodComm.measurableEmbedding]
           apply lintegral_congr
           intro xy
-          simp [Prod.swap]
+          simp only [Prod.swap]
         rw [← h1, h_swap_eq, h2]
       have h_inner_const : ∀ y,
           ∫⁻ x, (‖f y‖₊ : ℝ≥0∞)^p.toReal * ‖g (x - y)‖₊^q.toReal ∂volume =
@@ -1526,7 +1486,6 @@ lemma young_convolution_r_ne_top
         _ = A^r.toReal * B^r.toReal *
               ((∫⁻ y, ‖f y‖₊^p.toReal ∂volume) * ∫⁻ z, ‖g z‖₊^q.toReal ∂volume) := by
             rw [h_fubini]
-
     -- Rewrite in the form ‖f‖_p^p = ∫ |f|^p
     have h_fp_eq : ∫⁻ y, ‖f y‖₊^p.toReal ∂volume =
         (eLpNorm f p volume) ^ p.toReal := by
@@ -1540,17 +1499,8 @@ lemma young_convolution_r_ne_top
       rw [← ENNReal.rpow_mul]
       simp only [enorm_eq_nnnorm, one_div, inv_mul_cancel₀ (ne_of_gt hq_pos_real),
         ENNReal.rpow_one]
-
-    -- Calculate final upper bound
-    -- A^r * B^r * (‖f‖_p^p * ‖g‖_q^q)
-    -- = ‖f‖_p^{r(1-p/r)} * ‖g‖_q^{r(1-q/r)} * ‖f‖_p^p * ‖g‖_q^q
-    -- = ‖f‖_p^{r-p+p} * ‖g‖_q^{r-q+q}
-    -- = ‖f‖_p^r * ‖g‖_q^r
-    -- = (‖f‖_p * ‖g‖_q)^r
-
     have hp_le_r : p ≤ r := young_exponent_p_le_r hq hpqr
     have hq_le_r : q ≤ r := young_exponent_q_le_r hp hpqr
-
     have h_exp_p : r.toReal * (1 - p/r).toReal + p.toReal = r.toReal := by
       have h_pr_le_one : p / r ≤ 1 := by
         rw [ENNReal.div_le_iff (ne_of_gt hr_pos) hr_ne_top, one_mul]
@@ -1558,7 +1508,7 @@ lemma young_convolution_r_ne_top
       rw [ENNReal.toReal_sub_of_le h_pr_le_one (by simp)]
       rw [ENNReal.toReal_one, ENNReal.toReal_div]
       field_simp
-
+      ring
     have h_exp_q : r.toReal * (1 - q/r).toReal + q.toReal = r.toReal := by
       have h_qr_le_one : q / r ≤ 1 := by
         rw [ENNReal.div_le_iff (ne_of_gt hr_pos) hr_ne_top, one_mul]
@@ -1566,7 +1516,7 @@ lemma young_convolution_r_ne_top
       rw [ENNReal.toReal_sub_of_le h_qr_le_one (by simp)]
       rw [ENNReal.toReal_one, ENNReal.toReal_div]
       field_simp
-
+      ring
     have h_A_power : A^r.toReal * (eLpNorm f p volume)^p.toReal =
         (eLpNorm f p volume)^r.toReal := by
       simp only [A]
@@ -1582,6 +1532,7 @@ lemma young_convolution_r_ne_top
         rw [ENNReal.toReal_sub_of_le h_pr_le_one (by simp)]
         rw [ENNReal.toReal_one, ENNReal.toReal_div]
         field_simp
+        ring
       · apply mul_nonneg
         · rw [ENNReal.toReal_sub_of_le]
           · simp only [ENNReal.toReal_one]
@@ -1596,7 +1547,6 @@ lemma young_convolution_r_ne_top
           · simp
         · exact le_of_lt hr_pos_real
       · exact le_of_lt hp_pos_real
-
     have h_B_power : B^r.toReal * (eLpNorm g q volume)^q.toReal =
         (eLpNorm g q volume)^r.toReal := by
       simp only [B]
@@ -1609,6 +1559,7 @@ lemma young_convolution_r_ne_top
         rw [ENNReal.toReal_sub_of_le h_qr_le_one (by simp)]
         rw [ENNReal.toReal_one, ENNReal.toReal_div]
         field_simp
+        ring
       · apply mul_nonneg
         · rw [ENNReal.toReal_sub_of_le]
           · simp only [ENNReal.toReal_one]
@@ -1623,7 +1574,6 @@ lemma young_convolution_r_ne_top
           · simp
         · exact le_of_lt hr_pos_real
       · exact le_of_lt hq_pos_real
-
     have h_final_bound : A^r.toReal * B^r.toReal *
         ((eLpNorm f p volume) ^ p.toReal * (eLpNorm g q volume) ^ q.toReal) =
         (eLpNorm f p volume * eLpNorm g q volume) ^ r.toReal := by
@@ -1635,8 +1585,6 @@ lemma young_convolution_r_ne_top
             rw [h_A_power, h_B_power]
         _ = (eLpNorm f p volume * eLpNorm g q volume) ^ r.toReal := by
             rw [← ENNReal.mul_rpow_of_nonneg _ _ (le_of_lt hr_pos_real)]
-
-    -- Final inequality
     calc (∫⁻ x, ‖conv x‖ₑ^r.toReal ∂volume)^r.toReal⁻¹
         ≤ (A^r.toReal * B^r.toReal *
             ((∫⁻ y, ‖f y‖₊^p.toReal ∂volume) * ∫⁻ z, ‖g z‖₊^q.toReal ∂volume))^r.toReal⁻¹ := by

@@ -107,7 +107,7 @@ lemma dual_candidate_memLp
     intro x
     by_cases hfx : f x = 0
     · have hf_abs : |f x| = 0 := by simp [hfx]
-      simp [g, hfx, hf_abs, Real.zero_rpow hpr_sub_ne_zero]
+      simp [g, hfx, Real.zero_rpow hpr_sub_ne_zero]
     · have hsign_abs : |Real.sign (f x)| = 1 := by
         rcases Real.sign_apply_eq_of_ne_zero (f x) hfx with hsign | hsign
         · simp [hsign]
@@ -168,9 +168,9 @@ lemma dual_candidate_memLp
   have h_inv_toReal : (1 / pr) + (1 / qr) = 1 := by
     have h_toReal := congrArg ENNReal.toReal hpq_sum
     have h_inv_pr : (p⁻¹).toReal = 1 / pr := by
-      simp [pr, hpr, one_div]
+      simp [pr, one_div]
     have h_inv_qr : (q⁻¹).toReal = 1 / qr := by
-      simp [qr, hqr, one_div]
+      simp [qr, one_div]
     have h_split := ENNReal.toReal_add hp_inv_ne_top hq_inv_ne_top
     simpa [one_div, h_split, h_inv_pr, h_inv_qr] using h_toReal
   have hpr_ne_zero : pr ≠ 0 := ne_of_gt hpr_pos
@@ -343,8 +343,8 @@ lemma dual_candidate_pairing_eq
     simpa using (ENNReal.inv_ne_top).2 hq_ne_zero
   have h_inv_toReal : (1 / pr) + (1 / qr) = 1 := by
     have h_toReal := congrArg ENNReal.toReal hpq_sum
-    have h_inv_pr : (p⁻¹).toReal = 1 / pr := by simp [pr, hpr, one_div]
-    have h_inv_qr : (q⁻¹).toReal = 1 / qr := by simp [qr, hqr, one_div]
+    have h_inv_pr : (p⁻¹).toReal = 1 / pr := by simp [pr, one_div]
+    have h_inv_qr : (q⁻¹).toReal = 1 / qr := by simp [qr, one_div]
     have h_split := ENNReal.toReal_add hp_inv_ne_top hq_inv_ne_top
     simpa [one_div, h_split, h_inv_pr, h_inv_qr] using h_toReal
   have h_pow_identity : (pr - 1) * qr = pr := by
@@ -360,17 +360,17 @@ lemma dual_candidate_pairing_eq
     intro x
     by_cases hfx : f x = 0
     · have hsign : Real.sign (f x) = 0 := by simp [hfx]
-      simp [g, hg_def, hfx, hsign, Real.zero_rpow hpr_sub_ne_zero, Real.zero_rpow hpr_ne_zero]
+      simp [g, hfx, Real.zero_rpow hpr_sub_ne_zero, Real.zero_rpow hpr_ne_zero]
     · have hsign_mul_self : Real.sign (f x) * f x = |f x| := by
         obtain hx | hx | hx := lt_trichotomy (f x) 0
-        · simp [Real.sign_of_neg hx, hx, abs_of_neg hx, mul_comm, mul_left_comm, mul_assoc]
+        · simp [Real.sign_of_neg hx, abs_of_neg hx, mul_comm]
         · exact (hfx hx).elim
-        · simp [Real.sign_of_pos hx, hx, abs_of_pos hx, mul_comm, mul_left_comm, mul_assoc]
+        · simp [Real.sign_of_pos hx, abs_of_pos hx, mul_comm]
       have h_abs_pos : 0 < |f x| := abs_pos.mpr hfx
       have hsum : 1 + (pr - 1) = pr := by ring
       calc
         f x * g x
-            = f x * (Real.sign (f x) * |f x| ^ (pr - 1)) := by simp [g, hg_def]
+            = f x * (Real.sign (f x) * |f x| ^ (pr - 1)) := by simp [g]
         _ = (Real.sign (f x) * f x) * |f x| ^ (pr - 1) := by
               ring_nf
         _ = |f x| * |f x| ^ (pr - 1) := by simp [hsign_mul_self]
@@ -414,7 +414,7 @@ lemma dual_candidate_pairing_eq
     intro x
     by_cases hfx : f x = 0
     · have hf_abs : |f x| = 0 := by simp [hfx]
-      simp [g, hg_def, hfx, hf_abs, Real.zero_rpow hpr_sub_ne_zero]
+      simp [g, hfx, Real.zero_rpow hpr_sub_ne_zero]
     · have hsign_abs : |Real.sign (f x)| = 1 := by
         rcases Real.sign_apply_eq_of_ne_zero (f x) hfx with hsign | hsign
         · simp [hsign]
@@ -444,14 +444,14 @@ lemma dual_candidate_pairing_eq
   set B : ℝ := ∫ x, ‖g x‖ ^ qr ∂μ with hB
   have hB_eq_A : B = A := by
     calc
-      B = ∫ x, |g x| ^ qr ∂μ := by simp [B, hB, Real.norm_eq_abs]
+      B = ∫ x, |g x| ^ qr ∂μ := by simp [B, Real.norm_eq_abs]
       _ = ∫ x, |f x| ^ pr ∂μ := h_abs_integral_eq
-      _ = A := by simp [A, hA]
+      _ = A := by simp [A]
   have hB_nonneg : 0 ≤ B :=
     calc
       0 ≤ ∫ x, |g x| ^ qr ∂μ :=
         integral_nonneg fun x => Real.rpow_nonneg (abs_nonneg _) _
-      _ = B := by simp [B, hB, Real.norm_eq_abs]
+      _ = B := by simp [B, Real.norm_eq_abs]
   have h_eLpNorm_g :
       eLpNorm g q μ = ENNReal.ofReal (B ^ qr⁻¹) := by
     have :=
@@ -566,12 +566,11 @@ lemma integral_scaling_of_normalization
     calc
       c * (∫ x, ((1 / c) * f x) * g x ∂μ)
           = c * (c⁻¹ * I) := by rw [h_aux]
-      _ = (c * c⁻¹) * I := by
-            simp [mul_comm, mul_left_comm, mul_assoc]
-      _ = I := by simp [h_cancel, I, hI, mul_comm, mul_left_comm, mul_assoc]
+      _ = (c * c⁻¹) * I := by simp [mul_assoc]
+      _ = I := by simp [h_cancel, I]
   have h_rhs' : I = c * (∫ x, ((1 / c) * f x) * g x ∂μ) := h_rhs.symm
   calc
-    ∫ x, f x * g x ∂μ = I := by simp [I, hI]
+    ∫ x, f x * g x ∂μ = I := by simp [I]
     _ = c * (∫ x, ((1 / c) * f x) * g x ∂μ) := h_rhs'
 
 /-- Produce a dual element with unit `L^q` norm attaining the `L^p` norm of `f`. -/
@@ -603,7 +602,7 @@ lemma lp_duality_exists_norm_one_attainer
         (fun x => c * (f₀ x * g x)) =ᵐ[μ]
           fun x => f x * g x :=
       Filter.Eventually.of_forall fun x => by
-        simp [f₀, hf₀_def, c, hc_ne_zero, mul_comm, mul_left_comm, mul_assoc]
+        simp [f₀, c, hc_ne_zero, mul_comm, mul_left_comm]
     exact Integrable.congr hf_scaled h_ae
   have h_integral_scaling :
       (∫ x, f x * g x ∂μ) =
@@ -789,8 +788,8 @@ lemma eLpNorm_norm_integral_lt_top
       exact hpq_sum
   have hpq_toReal : (1 / pr) + (1 / qr) = 1 := by
     have h_toReal := congrArg ENNReal.toReal hpq_sum
-    have h_inv_pr : (p⁻¹).toReal = 1 / pr := by simp [pr, hpr, one_div]
-    have h_inv_qr : (q⁻¹).toReal = 1 / qr := by simp [qr, hqr, one_div]
+    have h_inv_pr : (p⁻¹).toReal = 1 / pr := by simp [pr, one_div]
+    have h_inv_qr : (q⁻¹).toReal = 1 / qr := by simp [qr, one_div]
     have h_split := ENNReal.toReal_add hp_inv_ne_top hq_inv_ne_top
     simpa [one_div, h_split, h_inv_pr, h_inv_qr] using h_toReal
   have h_pow_identity : (pr - 1) * qr = pr := by
@@ -799,9 +798,9 @@ lemma eLpNorm_norm_integral_lt_top
     have h_qr_ne_zero : qr ≠ 0 := hq_toReal_ne_zero
     have h_left : (1 / pr + 1 / qr) * (pr * qr) = pr + qr := by
       have h₁ : pr⁻¹ * (pr * qr) = qr := by
-        simp [one_div, h_pr_ne_zero, mul_comm, mul_left_comm, mul_assoc]
+        simp [h_pr_ne_zero]
       have h₂ : qr⁻¹ * (pr * qr) = pr := by
-        simp [one_div, h_qr_ne_zero, mul_comm, mul_left_comm, mul_assoc]
+        simp [h_qr_ne_zero, mul_comm]
       calc
         (1 / pr + 1 / qr) * (pr * qr)
             = pr⁻¹ * (pr * qr) + qr⁻¹ * (pr * qr) := by
@@ -821,10 +820,10 @@ lemma eLpNorm_norm_integral_lt_top
             = qr * (pr - 1) - 1 * (pr - 1) := by
               simpa [mul_comm, mul_left_comm, mul_assoc] using
                 (sub_mul qr (1 : ℝ) (pr - 1))
-        _ = (pr - 1) * qr - (pr - 1) := by simp [mul_comm, mul_left_comm, mul_assoc]
+        _ = (pr - 1) * qr - (pr - 1) := by simp [mul_comm]
         _ = pr - (pr - 1) := by simp [h_pow_identity]
         _ = 1 := by
-          simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+          simp [sub_eq_add_neg, add_comm]
     have h_one : (1 : ℝ) = (pr - 1) * (1 / (pr - 1)) := by
       simp [div_eq_mul_inv, h_pr_sub_ne_zero]
     have h_eq :
@@ -956,7 +955,7 @@ lemma eLpNorm_norm_integral_lt_top
       have hpow_nonneg : 0 ≤ (trunc N x) ^ pr := Real.rpow_nonneg hx_nonneg _
       have hnorm : ‖trunc N x‖ = trunc N x := by
         simp [Real.norm_eq_abs, abs_of_nonneg hx_nonneg]
-      simp [Real.enorm_eq_ofReal_abs, Real.norm_eq_abs, hnorm, abs_of_nonneg hx_nonneg,
+      simp [Real.enorm_eq_ofReal_abs, abs_of_nonneg hx_nonneg,
         abs_of_nonneg hpow_nonneg, ENNReal.ofReal_rpow_of_nonneg hx_nonneg hp_toReal_pos.le]
     simpa [HasFiniteIntegral, h_abs_eq]
       using h_int
@@ -1037,7 +1036,7 @@ lemma eLpNorm_norm_integral_lt_top
             have hge : 1 ≤ (N : ℝ) / g x := (one_le_div hg_pos).2 hle
             exact min_eq_left hge
           have htrunc : min (g x) (N : ℝ) = g x := min_eq_left hle
-          simp [hg0, hmin, htrunc]
+          simp [hmin, htrunc]
         · have hgt : (N : ℝ) < g x := lt_of_not_ge hle
           have hle' : (N : ℝ) / g x ≤ 1 := (div_le_one hg_pos).2 hgt.le
           have hmin : min (1 : ℝ) ((N : ℝ) / g x) = (N : ℝ) / g x :=
@@ -1056,7 +1055,7 @@ lemma eLpNorm_norm_integral_lt_top
     have hφ'_integrand_eq :
         (fun x => g x * φ' x) = fun x => trunc N x * φ x := by
       funext x
-      simp [φ', mul_comm, mul_left_comm, mul_assoc, hcoeff_mul]
+      simp [φ', mul_comm, mul_left_comm, hcoeff_mul]
     have hφ'_integrable : Integrable (fun x => g x * φ' x) μ := by
       simpa [hφ'_integrand_eq] using hφ_int
     have h_integral_eq :
@@ -1094,7 +1093,7 @@ lemma eLpNorm_norm_integral_lt_top
         have hx_nonneg : 0 ≤ g x := hg_nonneg x
         have hx_nonneg' : 0 ≤ gTilde x := by simpa [hx] using hx_nonneg
         have hmax : max (g x) 0 = g x := by simpa [max_eq_left] using hx_nonneg
-        simp [g0, hg0_def, hx, hmax, hx_nonneg']
+        simp [g0, hx, hx_nonneg']
     have h_eLp_congr : eLpNorm g p μ = eLpNorm g0 p μ :=
       eLpNorm_congr_ae hg0_ae
     have hgTilde_meas : Measurable gTilde := hg_meas.aemeasurable.measurable_mk
@@ -1174,8 +1173,7 @@ lemma eLpNorm_norm_integral_lt_top
         have h_trunc_eq : trunc0 N x = g0 x := by simp [trunc0, h_min]
         refine le_iSup_of_le N ?_
         have h_nonneg : 0 ≤ g0 x := hg0_nonneg x
-        simp [F0, hF0_def, h_trunc_eq, Real.enorm_eq_ofReal_abs, Real.norm_eq_abs,
-          abs_of_nonneg h_nonneg]
+        simp [F0, h_trunc_eq, Real.enorm_eq_ofReal_abs, abs_of_nonneg h_nonneg]
       · exact iSup_le h_le
     have h_lintegral_eq :
         ∫⁻ x, ‖g0 x‖ₑ ^ pr ∂μ = ⨆ N, ∫⁻ x, F0 N x ∂μ := by

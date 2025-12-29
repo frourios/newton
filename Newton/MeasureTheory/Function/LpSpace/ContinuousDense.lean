@@ -12,27 +12,17 @@ open scoped ENNReal ContDiff Topology
 
 namespace Newton
 
-/-!
-# Density of Schwartz functions in Lp spaces
-
-This file contains fundamental density theorems about Schwartz functions
-in Lp spaces, which are standard results in harmonic analysis.
--/
-
 variable {n : ℕ}
 
 /--
 **Continuous compactly supported functions are dense in Lp.**
-
-This is Theorem 3.14 in Rudin, "Real and Complex Analysis".
-Also Theorem 8.14 in Folland, "Real Analysis".
 
 For any f ∈ Lp(ℝⁿ) with 1 ≤ p < ∞ and any ε > 0, there exists
 a continuous function g with compact support such that ‖f - g‖_p < ε.
 -/
 theorem continuous_compactSupport_dense_Lp
     (p : ℝ≥0∞)
-    (hp_ne_top : p ≠ ∞)
+    (hp_ne_top : p ≠ ⊤)
     (f : (Fin n → ℝ) → ℂ)
     (hf : MemLp f p (volume : Measure (Fin n → ℝ)))
     {ε : ℝ}
@@ -57,8 +47,7 @@ theorem continuous_compactSupport_dense_Lp
   refine ⟨g, hg_cont, hg_compact, hg_memLp, ?_⟩
   exact lt_of_le_of_lt hg_bound h_lt
 
-/-- Auxiliary covering lemma for compact supports.
-    Any compactly supported function has its topological support
+/-- Any compactly supported function has its topological support
     contained in some closed ball of radius at least 1. -/
 lemma tsupport_subset_closedBall
     (g : (Fin n → ℝ) → ℂ) (hg_compact : HasCompactSupport g) :
@@ -101,7 +90,7 @@ lemma eLpNorm_triangle_ineq_lt
   have h_fun_eq :
       (fun x => g x - ψ x)
         = (fun x => g x - φ₀ x) + fun x => φ₀ x - ψ x := by
-    funext x; simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+    funext x; simp [sub_eq_add_neg, add_left_comm, add_assoc]
   have h_triangle :
       eLpNorm (fun x => g x - ψ x) p volume
           ≤
@@ -164,11 +153,9 @@ theorem mollifier_compactSupport_Lp_approx
       eLpNorm (fun x => g x - φ x) p volume < ENNReal.ofReal ε ∧
       MemLp φ p volume := by
   have hg_uc : UniformContinuous g := hg_compact.uniformContinuous_of_continuous hg_cont
-
   -- The support is compact and has finite measure
   have hsupp_compact : IsCompact (tsupport g) := hg_compact
   have hsupp_finite : volume (tsupport g) < (∞ : ℝ≥0∞) := hsupp_compact.measure_lt_top
-
   -- Choose ε' such that pointwise approximation gives Lp bound
   -- We need to handle the case where the support has zero measure separately
   by_cases h_zero : volume (tsupport g) = 0
@@ -196,7 +183,6 @@ theorem mollifier_compactSupport_Lp_approx
     have h_pos : 0 < ENNReal.ofReal ε := by
       simpa [ENNReal.ofReal_pos] using hε
     simpa [hnorm_g'] using h_pos
-
   · -- Choose a bounded region covering the support and set up quantitative bounds.
     have h_tsupport_compact : IsCompact (tsupport g) := hsupp_compact
     obtain ⟨R, hR_subset, hR_ge_one⟩ := tsupport_subset_closedBall g hg_compact
@@ -208,7 +194,7 @@ theorem mollifier_compactSupport_Lp_approx
     have hμB_lt_top : volume B < ⊤ := by
       simpa [hB_def] using
         (MeasureTheory.measure_closedBall_lt_top (x := (0 : Fin n → ℝ)) (r := R))
-    have hμB_ne_top : volume B ≠ ∞ := ne_of_lt hμB_lt_top
+    have hμB_ne_top : volume B ≠ ⊤ := ne_of_lt hμB_lt_top
     have hg_zero_outside : ∀ x ∉ B, g x = 0 := by
       intro x hxB
       by_contra hx_nonzero
@@ -227,7 +213,7 @@ theorem mollifier_compactSupport_Lp_approx
     have hμS_lt_top : volume S < ⊤ := by
       simpa [hS_def] using
         (MeasureTheory.measure_closedBall_lt_top (x := (0 : Fin n → ℝ)) (r := R + 1))
-    have hμS_ne_top : volume S ≠ ∞ := ne_of_lt hμS_lt_top
+    have hμS_ne_top : volume S ≠ ⊤ := ne_of_lt hμS_lt_top
     have h_exponent_nonneg : 0 ≤ 1 / p.toReal := by
       have hp_nonneg : 0 ≤ p.toReal := ENNReal.toReal_nonneg
       exact (div_nonneg zero_le_one hp_nonneg)
@@ -265,7 +251,6 @@ theorem mollifier_compactSupport_Lp_approx
       simp [denom]
     obtain ⟨φ_raw, hφ_raw_smooth, hφ_raw_close⟩ :=
       hg_uc.exists_contDiff_dist_le hδ_pos
-
     -- Build a smooth cutoff `χ` which equals `1` on the ball covering the support
     -- and vanishes outside a slightly larger ball. This ensures compact support after cutting.
     let fχ : ContDiffBump (0 : Fin n → ℝ) := ⟨R, R + 1, hR_pos, by simp⟩
@@ -281,7 +266,6 @@ theorem mollifier_compactSupport_Lp_approx
     have hχ_le_one : ∀ x, χ x ≤ 1 := by
       intro x
       simpa [χ] using (ContDiffBump.le_one (f := fχ) (x := x))
-
     set φ₀ : (Fin n → ℝ) → ℂ := fun x => (χ x : ℝ) • φ_raw x with hφ₀_def
     have hφ₀_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) φ₀ := by
       simpa [φ₀] using hχ_smooth.smul hφ_raw_smooth
@@ -330,7 +314,7 @@ theorem mollifier_compactSupport_Lp_approx
         have hφ₀_norm : ‖φ₀ x‖ < δ := by
           have hx_nonneg := hχ_nonneg x
           have hx_bound : ‖φ₀ x‖ = ‖χ x‖ * ‖φ_raw x‖ := by
-            simp [φ₀, norm_smul]
+            simp [φ₀]
           have hx_abs_eq : ‖χ x‖ = χ x := by
             simp [Real.norm_eq_abs, abs_of_nonneg hx_nonneg]
           have hx_abs_le : ‖χ x‖ ≤ 1 := by
@@ -354,7 +338,6 @@ theorem mollifier_compactSupport_Lp_approx
     have h_pointwise_bound : ∀ x, ‖g x - φ₀ x‖ ≤ ε / (8 * denom) := by
       intro x
       exact le_trans (h_pointwise_le x) (min_le_right _ _)
-
     -- Cut off the preliminary approximation so that it gains compact support.
     set ψ : (Fin n → ℝ) → ℂ := fun x => (χ x : ℝ) • φ₀ x with hψ_def
     have hψ_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) ψ := by
@@ -362,14 +345,12 @@ theorem mollifier_compactSupport_Lp_approx
     have hψ_support : HasCompactSupport ψ :=
       (HasCompactSupport.smul_right (M := ℂ) (f := χ) hχ_support)
     have hψ_cont : Continuous ψ := hψ_smooth.continuous
-
     -- Relate `ψ` with the original approximation on the support of `g`.
     have hψ_eq_on_support : ∀ x ∈ tsupport g, ψ x = φ₀ x := by
       intro x hx
       have hx_ball : x ∈ Metric.closedBall (0 : Fin n → ℝ) R := hR_subset hx
       have hχx : χ x = (1 : ℝ) := hχ_one x hx_ball
       simp [ψ, hχx]
-
     -- Estimate the Lᵖ error by splitting the domain into the support region
     -- and the exterior, keeping track of the uniform bounds obtained earlier.
     have h_term_support :
@@ -389,7 +370,7 @@ theorem mollifier_compactSupport_Lp_approx
             have hx :=
               congrArg (fun f : (Fin n → ℝ) → ℂ => f x)
                 (Set.indicator_self_add_compl (s := B) (f := fun y => g y - φ₀ y))
-            simp [f₁, f₂, B, Pi.add_apply]
+            simp [f₁, f₂, B]
           have h_meas_base :
               AEStronglyMeasurable (fun x => g x - φ₀ x) volume :=
             (hg_cont.aestronglyMeasurable.sub
@@ -424,7 +405,7 @@ theorem mollifier_compactSupport_Lp_approx
             (eLpNorm_le_of_ae_bound (μ := volume.restrict B) (p := p)
               (f := fun x => g x - φ₀ x) h_restrict_bound)
         have hμB : volume.restrict B Set.univ = volume B := by
-          simp [Measure.restrict_apply, hB_meas]
+          simp [Measure.restrict_apply]
         have h_eLp_le :
             eLpNorm (fun x => Set.indicator B (fun y => g y - φ₀ y) x) p volume
                 ≤ A * ENNReal.ofReal (ε / (8 * denom)) := by
@@ -448,7 +429,7 @@ theorem mollifier_compactSupport_Lp_approx
         have h_mul_le :
             A * ENNReal.ofReal (ε / (8 * denom))
                 ≤ ENNReal.ofReal denom * ENNReal.ofReal (ε / (8 * denom)) :=
-          mul_le_mul_right' hA_le _
+          mul_le_mul_left hA_le _
         have h_mul_eq :
             ENNReal.ofReal denom * ENNReal.ofReal (ε / (8 * denom))
                 = ENNReal.ofReal (ε / 8) := by
@@ -574,7 +555,6 @@ theorem mollifier_compactSupport_Lp_approx
           have h₂ : (8 : ℝ) ≠ 0 := by norm_num
           have h_cancel : denom * (ε / (8 * denom)) = ε / 8 := by
             field_simp [h₁, h₂]
-            ring
           simpa [h_cancel] using h_mul
         have hε_frac_lt_real : ε / 8 < ε / 4 := by
           have hfrac : (1 : ℝ) / 8 < 1 / 4 := by norm_num
@@ -648,12 +628,12 @@ theorem mollifier_compactSupport_Lp_approx
             simpa [Function.support] using this
           exact hxS (h_support_subset hx_support)
         have hψ_zero : ψ x = 0 := by simp [ψ, hφ₀_zero]
-        simp [f_cut, hfcut_def, hφ₀_zero, hψ_zero]
+        simp [f_cut, hφ₀_zero, hψ_zero]
       have h_pointwise_cut_le : ∀ x, ‖f_cut x‖ ≤ δ := by
         intro x
         by_cases hxB : x ∈ B
         · have hχx : χ x = (1 : ℝ) := hχ_one x hxB
-          have : f_cut x = 0 := by simp [f_cut, hfcut_def, ψ, hχx]
+          have : f_cut x = 0 := by simp [f_cut, ψ, hχx]
           simp [this, le_of_lt hδ_pos]
         · have hgx : g x = 0 := hg_zero_outside x hxB
           have hφ₀_norm : ‖φ₀ x‖ ≤ δ := by
@@ -691,9 +671,9 @@ theorem mollifier_compactSupport_Lp_approx
       have h_indicator_eq : Set.indicator S f_cut = f_cut := by
         funext x
         by_cases hxS : x ∈ S
-        · simp [Set.indicator, hxS, f_cut, hfcut_def]
+        · simp [Set.indicator, hxS, f_cut]
         · have h_zero : f_cut x = 0 := h_outside_zero hxS
-          simp [Set.indicator, hxS, f_cut, hfcut_def, h_zero]
+          simp [Set.indicator, hxS, f_cut, h_zero]
       have h_eLp_eq :
           eLpNorm f_cut p volume = eLpNorm f_cut p (volume.restrict S) := by
         have h_congr :=
@@ -730,7 +710,7 @@ theorem mollifier_compactSupport_Lp_approx
           (volume S) ^ (1 / p.toReal) *
               ENNReal.ofReal (ε / (8 * denom))
             ≤ ENNReal.ofReal denom * ENNReal.ofReal (ε / (8 * denom)) :=
-        mul_le_mul_right' h_powS_le _
+        mul_le_mul_left h_powS_le _
       have h_mul_eq :
           ENNReal.ofReal denom * ENNReal.ofReal (ε / (8 * denom))
               = ENNReal.ofReal (ε / 8) := by
@@ -771,16 +751,13 @@ theorem mollifier_compactSupport_Lp_approx
           eLpNorm (fun x => φ₀ x - ψ x) p volume ≤ ENNReal.ofReal (ε / 8) := by
         convert h_bound using 2
       exact lt_of_le_of_lt h_bound' h_lt
-
     have h_eLp_bound :
         eLpNorm (fun x => g x - ψ x) p volume < ENNReal.ofReal ε :=
       eLpNorm_triangle_ineq_lt p hp_one hg_cont hφ₀_smooth hψ_cont
         h_term_support h_term_cutoff hε_half
-
     -- `ψ` has compact support, so it automatically belongs to every Lᵖ space.
     have hψ_memLp : MemLp ψ p volume :=
       continuous_compactSupport_memLp hψ_cont hψ_support p
-
     refine ⟨ψ, hψ_smooth, ?_, hψ_memLp⟩
     exact h_eLp_bound
 
@@ -903,7 +880,7 @@ lemma smooth_cutoff_compactSupport_Lp_aux
           using hx_le
       have hxψ_le : ‖ψ x‖ ≤ δ := by
         have hxψ_norm : ‖ψ x‖ = ‖χ x‖ * ‖φ₀ x‖ := by
-          simp [ψ, norm_smul]
+          simp [ψ]
         have hx_mul_le : ‖χ x‖ * ‖φ₀ x‖ ≤ ‖φ₀ x‖ :=
           (mul_le_of_le_one_left (norm_nonneg _) hχ_norm_le)
         have hψ_le_phi : ‖ψ x‖ ≤ ‖φ₀ x‖ := by
@@ -955,7 +932,7 @@ lemma smooth_cutoff_compactSupport_Lp_aux
   have h_mul_le :
       volFactor * ENNReal.ofReal δ
         ≤ ENNReal.ofReal (C + 1) * ENNReal.ofReal δ :=
-    mul_le_mul_right' h_vol_le _
+    mul_le_mul_left h_vol_le _
   have h_mul_eq :
       ENNReal.ofReal (C + 1) * ENNReal.ofReal δ
         = ENNReal.ofReal (ε / 8) := by
@@ -968,7 +945,7 @@ lemma smooth_cutoff_compactSupport_Lp_aux
           = ENNReal.ofReal ((C + 1) * δ) :=
       (ENNReal.ofReal_mul hden_nonneg).symm
     have h_cancel : (C + 1) * δ = ε / 8 := by
-      simp [δ, hδ_def, div_eq_mul_inv, hden_ne_zero, mul_comm, mul_left_comm, mul_assoc]
+      simp [δ, div_eq_mul_inv, hden_ne_zero, mul_comm, mul_left_comm, mul_assoc]
     simp [h_mul, h_cancel]
   have h_eLp_le' : eLpNorm diff p volume ≤ ENNReal.ofReal (ε / 8) :=
     h_eLp_le.trans <| h_mul_le.trans <| le_of_eq h_mul_eq
@@ -997,7 +974,7 @@ lemma smooth_cutoff_compactSupport_Lp_aux
 theorem smooth_cutoff_compactSupport_Lp
     (p : ℝ≥0∞)
     (hp_one : 1 ≤ p)
-    (hp_ne_top : p ≠ ∞)
+    (hp_ne_top : p ≠ ⊤)
     (φ : (Fin n → ℝ) → ℂ)
     (hφ_smooth : ContDiff ℝ (∞ : WithTop ℕ∞) φ)
     (hφ_memLp : MemLp φ p volume)
@@ -1032,7 +1009,7 @@ theorem smooth_cutoff_compactSupport_Lp
   have h_fun_eq :
       (fun x => φ x - ψ x)
         = (fun x => φ x - g x) + fun x => g x - ψ x := by
-    funext x; simp [sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+    funext x; simp [sub_eq_add_neg, add_left_comm, add_assoc]
   have h_triangle :
       eLpNorm (fun x => φ x - ψ x) p volume
         ≤ eLpNorm (fun x => φ x - g x) p volume
@@ -1096,7 +1073,7 @@ lemma smooth_compactSupport_to_schwartz
         simp [h_support_empty]
       have hx_zero : iteratedFDeriv ℝ m g x = 0 :=
         image_eq_zero_of_notMem_tsupport hx_not
-      simp [h, hx_zero]
+      simp [hx_zero]
     · have h_support_nonempty : (tsupport (iteratedFDeriv ℝ m g)).Nonempty :=
         Set.nonempty_iff_ne_empty.mpr h_support_empty
       obtain ⟨x₀, hx₀_support⟩ := h_support_nonempty
@@ -1141,14 +1118,12 @@ lemma integrable_tail_small
     simpa [hg_def] using hf_int.norm
   have hg_nonneg : ∀ x, 0 ≤ g x := fun x => norm_nonneg _
   let tail : ℕ → Set (Fin n → ℝ) := fun k => {x | (k : ℝ) ≤ ‖x‖}
-
   have h_tail_meas : ∀ k, MeasurableSet (tail k) := by
     intro k
     have h_closed :
         IsClosed {x : (Fin n → ℝ) | (k : ℝ) ≤ ‖x‖} :=
       (isClosed_le continuous_const continuous_norm)
     simpa [tail] using h_closed.measurableSet
-
   have h_tendsto :
       Filter.Tendsto
         (fun k : ℕ => ∫ x, Set.indicator (tail k) g x ∂volume)
@@ -1164,9 +1139,8 @@ lemma integrable_tail_small
       intro x
       by_cases hx : x ∈ tail k
       · have hx_nonneg : 0 ≤ g x := hg_nonneg x
-        simp [tail, hx, hg_def, Real.norm_eq_abs, hx_nonneg,
-          abs_of_nonneg hx_nonneg]
-      · simp [tail, hx, hg_def, Real.norm_eq_abs, hg_nonneg x]
+        simp [tail, hx, hg_def]
+      · simp [tail, hx, hg_def]
     have h_lim : ∀ᵐ x ∂volume,
         Filter.Tendsto (fun k : ℕ => Set.indicator (tail k) g x)
           Filter.atTop (𝓝 (0 : ℝ)) := by
@@ -1191,7 +1165,6 @@ lemma integrable_tail_small
       MeasureTheory.tendsto_integral_of_dominated_convergence g h_meas
         hg_integrable h_bound h_lim
     simpa using h_tendsto'
-
   have h_eventually : ∀ᶠ k : ℕ in Filter.atTop,
       ∫ x in tail k, g x ∂volume < ε := by
     have h_tail_nonneg : ∀ k : ℕ, 0 ≤ ∫ x in tail k, g x ∂volume := by
@@ -1200,8 +1173,8 @@ lemma integrable_tail_small
           0 ≤ᵐ[volume] fun x => Set.indicator (tail k) g x :=
         Filter.Eventually.of_forall (fun x => by
           by_cases hx : x ∈ tail k
-          · simp [tail, hx, hg_def, hg_nonneg x]
-          · simp [tail, hx, hg_def, hg_nonneg x])
+          · simp [tail, hx, hg_def]
+          · simp [tail, hx, hg_def])
       have h_eq : ∫ x, Set.indicator (tail k) g x ∂volume
           = ∫ x in tail k, g x ∂volume :=
         MeasureTheory.integral_indicator (h_tail_meas k)
@@ -1217,7 +1190,6 @@ lemma integrable_tail_small
         = ∫ x in tail k, g x ∂volume :=
       MeasureTheory.integral_indicator (h_tail_meas k)
     simpa [Real.dist_eq, h_eq, abs_of_nonneg (h_tail_nonneg k)] using hk
-
   obtain ⟨N, hN⟩ := Filter.eventually_atTop.1 h_eventually
   let M : ℕ := max N 1
   have hM_ge_N : N ≤ M := le_max_left _ _

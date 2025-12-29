@@ -3,6 +3,10 @@ import Newton.Analysis.Convolution.Basic
 import Newton.Analysis.Convolution.Bounds
 import Newton.Analysis.Convolution.Minkowski
 import Newton.Analysis.Distribution.SchwartzDensity
+import Newton.Gauge.GaugeTransformation
+import Newton.Gauge.GellMannMatrices
+import Newton.Gauge.LieAlgebra
+import Newton.Gauge.StructureConstants
 import Newton.MeasureTheory.Function.LpSpace.ContinuousDense
 import Newton.MeasureTheory.Function.LpSpace.Duality
 import Newton.MeasureTheory.Integral.Holder

@@ -6,7 +6,7 @@ interface Theorem {
   description: string
   file: string
   line: number
-  category: 'analysis' | 'measure-theory' | 'convolution' | 'distribution'
+  category: 'analysis' | 'measure-theory' | 'convolution' | 'distribution' | 'gauge-theory'
 }
 
 const GITHUB_BASE = 'https://github.com/frourios/newton/blob/main'
@@ -119,6 +119,92 @@ const theorems: Theorem[] = [
     line: 533,
     category: 'convolution',
   },
+
+  // Gauge Theory - Lie Algebra
+  {
+    name: 'Newton.SuNAlgebra.jacobi_identity',
+    displayName: 'Jacobi Identity for su(N)',
+    description: '[A, [B, C]] + [B, [C, A]] + [C, [A, B]] = 0 for su(N) Lie algebra',
+    file: 'Newton/Gauge/LieAlgebra.lean',
+    line: 209,
+    category: 'gauge-theory',
+  },
+  {
+    name: 'Newton.SuNAlgebra.trace_square_nonpos',
+    displayName: 'Trace Square Non-positive',
+    description: 'For anti-Hermitian A, Tr(A²) has non-positive real part',
+    file: 'Newton/Gauge/LieAlgebra.lean',
+    line: 289,
+    category: 'gauge-theory',
+  },
+  {
+    name: 'Newton.killingForm_symm',
+    displayName: 'Killing Form Symmetry',
+    description: 'The Killing form B(A, B) = Tr(AB) is symmetric',
+    file: 'Newton/Gauge/LieAlgebra.lean',
+    line: 304,
+    category: 'gauge-theory',
+  },
+
+  // Gauge Theory - SU(2) Commutation Relations
+  {
+    name: 'Newton.su2_bracket_12',
+    displayName: 'su(2) Commutation [T₁, T₂] = T₃',
+    description: 'Fundamental commutation relation of su(2) generators',
+    file: 'Newton/Gauge/GellMannMatrices.lean',
+    line: 226,
+    category: 'gauge-theory',
+  },
+  {
+    name: 'Newton.su2_bracket_23',
+    displayName: 'su(2) Commutation [T₂, T₃] = T₁',
+    description: 'Cyclic commutation relation of su(2) generators',
+    file: 'Newton/Gauge/GellMannMatrices.lean',
+    line: 307,
+    category: 'gauge-theory',
+  },
+  {
+    name: 'Newton.su2_bracket_31',
+    displayName: 'su(2) Commutation [T₃, T₁] = T₂',
+    description: 'Cyclic commutation relation of su(2) generators',
+    file: 'Newton/Gauge/GellMannMatrices.lean',
+    line: 387,
+    category: 'gauge-theory',
+  },
+  {
+    name: 'Newton.exists_noncommuting_elements',
+    displayName: 'Non-commutativity of su(N)',
+    description: 'For N ≥ 2, su(N) has non-commuting elements (non-Abelian)',
+    file: 'Newton/Gauge/GellMannMatrices.lean',
+    line: 722,
+    category: 'gauge-theory',
+  },
+
+  // Gauge Theory - Adjoint Action
+  {
+    name: 'Newton.adjointAction.bracket',
+    displayName: 'Adjoint Action Preserves Bracket',
+    description: 'Ad(g)[A, B] = [Ad(g)A, Ad(g)B] for SU(N) gauge transformation',
+    file: 'Newton/Gauge/GaugeTransformation.lean',
+    line: 177,
+    category: 'gauge-theory',
+  },
+  {
+    name: 'Newton.adjointAction.compose',
+    displayName: 'Adjoint Action Composition',
+    description: 'Ad(gh)(A) = Ad(g)(Ad(h)(A)) - group homomorphism property',
+    file: 'Newton/Gauge/GaugeTransformation.lean',
+    line: 156,
+    category: 'gauge-theory',
+  },
+  {
+    name: 'Newton.adjoint_leibniz',
+    displayName: 'Adjoint Leibniz Rule',
+    description: 'ad(A)([B, C]) = [ad(A)(B), C] + [B, ad(A)(C)] - derivation property',
+    file: 'Newton/Gauge/StructureConstants.lean',
+    line: 64,
+    category: 'gauge-theory',
+  },
 ]
 
 const categoryLabels: Record<Theorem['category'], string> = {
@@ -126,6 +212,7 @@ const categoryLabels: Record<Theorem['category'], string> = {
   'measure-theory': 'Measure Theory',
   'convolution': 'Convolution',
   'distribution': 'Distribution Theory',
+  'gauge-theory': 'Gauge Theory',
 }
 
 const categoryColors: Record<Theorem['category'], string> = {
@@ -133,6 +220,7 @@ const categoryColors: Record<Theorem['category'], string> = {
   'measure-theory': '#7c3aed',
   'convolution': '#059669',
   'distribution': '#dc2626',
+  'gauge-theory': '#d97706',
 }
 
 export function TheoremList() {
